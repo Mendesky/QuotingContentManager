@@ -28,6 +28,7 @@ public struct QuotingContentManager: Sendable {
     ]
 
     public var contractNoteManager: ContractNoteManager = .init()
+    public var businessClientAssistanceManager: BusinessClientAssistanceManager = .init()
 
     public init() {}
 
@@ -75,6 +76,14 @@ public struct QuotingContentManager: Sendable {
         }.sorted { lhs, rhs in
             lhs.weight > rhs.weight
         }
+    }
+
+    public func fetchBusinessClientAssistance(subsetOf tags: [String]) -> [BusinessClientAssistanceManager.Item] {
+        businessClientAssistanceManager.items.filter { $0.isSubsetOf(tags: tags) }
+    }
+
+    public func fetchBusinessClientAssistance(symmetricDifference tags: [String]) -> [BusinessClientAssistanceManager.Item] {
+        businessClientAssistanceManager.items.filter { !$0.isSubsetOf(tags: tags) }
     }
 
     public func findIndexToInsert(willInsert noteInfo: ContractNoteManager.ContractNoteInfo, inUniqueCodes uniqueCodes: [String?]) -> Int? {

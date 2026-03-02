@@ -23,11 +23,5 @@ public struct BusinessClientAssistanceManager: Sendable {
 
     public init() {}
 
-    public func fetchItems(subsetOf tags: [String]) -> [Item] {
-        items.filter { $0.isSubsetOf(tags: tags) }
-    }
 
-    public func fetchItems(symmetricDifference tags: [String]) -> [Item] {
-        items.filter { !$0.isSubsetOf(tags: tags) }
-    }
 }
