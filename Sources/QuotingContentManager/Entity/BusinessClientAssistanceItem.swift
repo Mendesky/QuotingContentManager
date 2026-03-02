@@ -7,11 +7,13 @@
 
 public extension BusinessClientAssistanceManager {
     struct Item: Sendable {
+        public let uniqueCode: String
         public let name: String
         public let content: String
         public let traits: [Trait]
 
-        init(name: String, content: String, traits: [Trait] = []) {
+        init(uniqueCode: String, name: String, content: String, traits: [Trait] = []) {
+            self.uniqueCode = uniqueCode
             self.name = name
             self.content = content
             self.traits = traits
