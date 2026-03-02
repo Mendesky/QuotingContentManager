@@ -48,7 +48,8 @@ public struct ServiceItem: Codable, Sendable {
                 alias: "財簽",
                 primary: true,
                 tags: [
-                    "ServiceItem/FinancialComplianceAudit"
+                    "ServiceItem/FinancialComplianceAudit",
+                    "Need/BusinessClientAssistance",
                 ])
         }
     }
@@ -61,7 +62,8 @@ public struct ServiceItem: Codable, Sendable {
                 alias: "稅簽",
                 primary: true,
                 tags: [
-                    "ServiceItem/TaxComplianceAudit"
+                    "ServiceItem/TaxComplianceAudit",
+                    "Need/BusinessClientAssistance",
                 ])
         }
     }
