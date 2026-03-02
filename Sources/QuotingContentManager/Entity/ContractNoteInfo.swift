@@ -12,13 +12,15 @@ public extension ContractNoteManager {
         public let traits: [Trait]
         public let mutex: Mutex?
         public let weight: Int
+        public let deprecated: Bool
 
-        init(uniqueCode: String, mutex: Mutex? = nil, traits: [Trait], weight: Int, content: String) {
+        init(deprecated: Bool = false, uniqueCode: String, mutex: Mutex? = nil, traits: [Trait], weight: Int, content: String) {
             self.uniqueCode = uniqueCode
             self.content = content
             self.traits = traits
             self.mutex = mutex
             self.weight = weight
+            self.deprecated = deprecated
         }
 
         package func isSubsetOf(tags: [String]) -> Bool {
