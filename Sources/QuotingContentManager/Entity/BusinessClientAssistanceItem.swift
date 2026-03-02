@@ -16,5 +16,11 @@ public extension BusinessClientAssistanceManager {
             self.content = content
             self.traits = traits
         }
+
+        package func isSubsetOf(tags: [String]) -> Bool {
+            traits.contains {
+                $0.tags.isSubset(of: tags) && ($0.excluded.isEmpty || !$0.excluded.isSubset(of: tags))
+            }
+        }
     }
 }
