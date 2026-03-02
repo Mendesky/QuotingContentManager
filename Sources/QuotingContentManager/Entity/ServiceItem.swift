@@ -5,7 +5,7 @@
 //  Created by Grady Zhuo on 2026/3/2.
 //
 
-public struct ServiceItem: Codable {
+public struct ServiceItem: Codable, Sendable {
     public let type: String
     public let name: String
     public let alias: String

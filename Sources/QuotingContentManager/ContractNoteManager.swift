@@ -120,10 +120,6 @@ public struct ContractNoteManager: Sendable {
 
     public init() {}
 
-    public func getNote(uniqueCode: String) -> ContractNoteInfo? {
-        notes.filter { !$0.deprecated }.first { $0.uniqueCode == uniqueCode }
-    }
-
     public func fetchNotes(tip: String) -> [ContractNoteInfo] {
         fetchNotes(subsetOf: ["Tip/\(tip)"])
     }
