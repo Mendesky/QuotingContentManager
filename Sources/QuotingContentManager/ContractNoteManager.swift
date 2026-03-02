@@ -6,8 +6,6 @@
 //
 
 public struct ContractNoteManager: Sendable {
-    public static let standard: Self = .init()
-
     public var notes: [ContractNoteInfo] = [
         .init(uniqueCode: "1", traits: ["ServiceItem/CTP"], weight: 30, content: """
         附加服務選項：代辦年度 CTP 申報(每年 3 月)，依據公司法增訂第 22 條之 1 是為了配合洗錢防制政策，協助建置完善洗錢防制體制，強化洗錢防制作為，以增加法人(公司)之透明度，並有效掌握公司負責人(董事、監察人及經理人)及主要股東(持有超過 10%股份或出資額股東)之持股或出資額。
