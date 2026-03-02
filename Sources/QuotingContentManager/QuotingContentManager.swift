@@ -78,11 +78,11 @@ public struct QuotingContentManager: Sendable {
         }
     }
 
-    public func fetchBusinessClientAssistance(subsetOf tags: [String]) -> [BusinessClientAssistanceManager.Item] {
+    public func fetchBusinessClientAssistances(subsetOf tags: [String]) -> [BusinessClientAssistanceManager.Item] {
         businessClientAssistanceManager.items.filter { $0.isSubsetOf(tags: tags) }
     }
 
-    public func fetchBusinessClientAssistance(symmetricDifference tags: [String]) -> [BusinessClientAssistanceManager.Item] {
+    public func fetchBusinessClientAssistances(symmetricDifference tags: [String]) -> [BusinessClientAssistanceManager.Item] {
         businessClientAssistanceManager.items.filter { !$0.isSubsetOf(tags: tags) }
     }
 
