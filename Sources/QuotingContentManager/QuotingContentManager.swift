@@ -36,15 +36,15 @@ public struct QuotingContentManager: Sendable {
         serviceItems.first { $0.type == type }
     }
 
-    public func getNote(uniqueCode: String) -> ContractNoteManager.ContractNoteInfo? {
+    public func getNote(uniqueCode: String) -> ContractNoteInfo? {
         contractNoteManager.notes.filter { !$0.deprecated }.first { $0.uniqueCode == uniqueCode }
     }
 
-    public func fetchNotes(tip: String) -> [ContractNoteManager.ContractNoteInfo] {
+    public func fetchNotes(tip: String) -> [ContractNoteInfo] {
         fetchNotes(subsetOf: ["Tip/\(tip)"])
     }
 
-    public func fetchNotes(mutexTags: [String]) -> [ContractNoteManager.ContractNoteInfo] {
+    public func fetchNotes(mutexTags: [String]) -> [ContractNoteInfo] {
         contractNoteManager.notes.filter {
             if case let .tags(tags) = $0.mutex {
                 Set<String>(mutexTags).isSubset(of: Set<String>(tags))
@@ -54,15 +54,15 @@ public struct QuotingContentManager: Sendable {
         }
     }
 
-    public func fetchNotes(serviceItem: String) -> [ContractNoteManager.ContractNoteInfo] {
+    public func fetchNotes(serviceItem: String) -> [ContractNoteInfo] {
         fetchNotes(subsetOf: ["ServiceItem/\(serviceItem)"])
     }
 
-    public func fetchNotes(serviceItemConfig key: String, value: String) -> [ContractNoteManager.ContractNoteInfo] {
+    public func fetchNotes(serviceItemConfig key: String, value: String) -> [ContractNoteInfo] {
         fetchNotes(subsetOf: ["ServiceItemConfig/\(key):\(value)"])
     }
 
-    public func fetchNotes(subsetOf tags: [String]) -> [ContractNoteManager.ContractNoteInfo] {
+    public func fetchNotes(subsetOf tags: [String]) -> [ContractNoteInfo] {
         contractNoteManager.notes.filter { note in
             note.isSubsetOf(tags: tags)
         }.sorted { lhs, rhs in
@@ -70,7 +70,7 @@ public struct QuotingContentManager: Sendable {
         }
     }
 
-    public func fetchNotes(symmetricDifference tags: [String]) -> [ContractNoteManager.ContractNoteInfo] {
+    public func fetchNotes(symmetricDifference tags: [String]) -> [ContractNoteInfo] {
         contractNoteManager.notes.filter { note in
             !note.isSubsetOf(tags: tags)
         }.sorted { lhs, rhs in
@@ -86,12 +86,43 @@ public struct QuotingContentManager: Sendable {
         businessClientAssistanceManager.items.filter { !$0.isSubsetOf(tags: tags) }
     }
 
-    public func findIndexToInsert(willInsert noteInfo: ContractNoteManager.ContractNoteInfo, inUniqueCodes uniqueCodes: [String?]) -> Int? {
+    public func findContactNoteIndexToInsert(willInsert noteInfo: ContractNoteInfo, inUniqueCodes uniqueCodes: [String?]) -> Int? {
         uniqueCodes.firstIndex(where: { uniqueCode in
             guard let currentNoteInfo = contractNoteManager.notes.first(where: { $0.uniqueCode == uniqueCode }) else {
                 return false
             }
             return currentNoteInfo.weight < noteInfo.weight
         })
+    }
+}
+
+extension QuotingContentManager {
+    public var paymentTitle: String {
+        get {
+            "酬金"
+        }
+    }
+}
+
+
+
+extension QuotingContentManager {
+    public var contractHeader: Copywriting {
+        get {
+            .init(title: "承 貴公司委任本事務所辦理有關%QuotingServiceNames%之專業服務，至深感荷。謹將服務內容及酬金等分別說明如後，敬請卓察賜覆為禱。", content: "感謝 貴公司對本事務所的支持與愛護，本事務所本著積極服務顧客的熱忱，以及專業智慧的多元服務，特將本事務所受託辦理有關%QuotingServiceNames%之專業服務內容概述如後，期盼此項合作能協助 貴公司提升會計帳務品質，俾能符合相關稅務法令和企業會計準則之規定。茲將委任之目的、服務範圍、 貴公司協助事項、酬金、權利義務事項及同意函列示如下:")
+        }
+    }
+    
+    public var letter: Copywriting {
+        get {
+            .init(title: "本公司同意委託 貴事務所執行本公司有關%QuotingServiceNames%之專業報價項目及公費，請查照。", content: "茲將附上%CompanyName%有關%QuotingServiceNames%之專業服務公費報價單。\n我們希望以最專業多元的服務與 貴公司長久配合，公費內容若經確認，煩請將最後一頁同意函簽章並回傳至敝事務所，謝謝您的合作。")
+        }
+    }
+    
+    
+    public var purpose: Copywriting {
+        get {
+            .init(title: "目的", content: "貴公司委託本事務所辦理有關%QuotingServiceNames%之專業服務，以協助 貴公司提升整體會計帳務品質，並符合相關稅務法令和企業會計準則等之規定。")
+        }
     }
 }
