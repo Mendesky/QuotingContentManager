@@ -36,6 +36,10 @@ public struct QuotingContentManager: Sendable {
         serviceItems.first { $0.type == type }
     }
 
+    public func getWorkItem(serviceType: String, workItemType: String) -> WorkItem? {
+        getServiceItem(type: serviceType)?.workItem(type: workItemType)
+    }
+
     public func getNote(uniqueCode: String) -> ContractNoteInfo? {
         contractNoteManager.notes.filter { !$0.deprecated }.first { $0.uniqueCode == uniqueCode }
     }
