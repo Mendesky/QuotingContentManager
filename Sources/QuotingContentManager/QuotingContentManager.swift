@@ -11,18 +11,18 @@ public struct QuotingContentManager: Sendable {
         .taxComplianceAudit,
         .cashierOperation,
         .payrollSupportOperation,
-        .settlementReview,
+//        .settlementReview,
         .customized,
         .companyRegistration,
         .ctp,
         .assistanceAnnualSupplementaryPremiumDeductionDetailsReporting,
-        .assistanceRegistrationByJWServiceItem,
+//        .assistanceRegistrationByJWServiceItem,
         .assistanceWithCompanyCertificatationApplication,
-        .assistanceWithCompanyCorporateSeal,
-        .assistanceWithChairmanCorporateSeal,
-        .assistanceWithCompanyStamps,
-        .assistanceWithCompanyConvenienceStamps,
-        .assistanceWithInvoiceStamp,
+        .assistanceWithCompanySeal,
+        .assistanceWithChairmanSeal,
+        .assistanceWithCompanyConvenienceSeal,
+        .assistanceWithChairmanConvenienceSeal,
+        .assistanceWithInvoiceSeal,
         .assistanceWithLaborAndHealthInsuranceInsuredUnitSetting,
         .ownerOccupiedResidencePartForBusinessApplication,
     ]
@@ -34,6 +34,10 @@ public struct QuotingContentManager: Sendable {
 
     public func getServiceItem(type: String) -> ServiceItem? {
         serviceItems.first { $0.type == type }
+    }
+
+    public func getWorkItem(serviceType: String, workItemType: String) -> WorkItem? {
+        getServiceItem(type: serviceType)?.workItem(type: workItemType)
     }
 
     public func getNote(uniqueCode: String) -> ContractNoteInfo? {
