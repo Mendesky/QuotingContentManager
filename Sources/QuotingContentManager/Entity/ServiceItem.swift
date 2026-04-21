@@ -191,18 +191,18 @@ public struct ServiceItem: Codable, Sendable {
         }
     }
 
-    public static var settlementReview: Self {
-        get {
-            .init(
-                type: "SettlementReview",
-                name: "結算覆核",
-                alias: "覆核",
-                primary: false,
-                tags: [
-                    "ServiceItem/SettlementReview"
-                ])
-        }
-    }
+//    public static var settlementReview: Self {
+//        get {
+//            .init(
+//                type: "SettlementReview",
+//                name: "結算覆核",
+//                alias: "覆核",
+//                primary: false,
+//                tags: [
+//                    "ServiceItem/SettlementReview"
+//                ])
+//        }
+//    }
 
     public static var customized: Self {
         get {
@@ -239,6 +239,7 @@ public struct ServiceItem: Codable, Sendable {
                     .init(type: "exporterImporterRegistration", content: "國貿局進出口登記"),
                     .init(type: "companyRegistration", content: "國稅局營業登記"),
                     .init(type: "uniformInvoicePurchasing", content: "國稅局購票證申報"),
+                    .init(type: "ctpOfCompanyRegistration", content: "經濟部CTP申報事宜"),
                 ])
         }
     }
@@ -256,7 +257,6 @@ public struct ServiceItem: Codable, Sendable {
                 ],
                 workItems: [
                     .init(type: "ctp", content: "年度CTP申報"),
-                    .init(type: "ctpOfCompanyRegistration", content: "經濟部CTP申報事宜"),
                 ])
         }
     }
@@ -277,18 +277,18 @@ public struct ServiceItem: Codable, Sendable {
         }
     }
 
-    public static var assistanceRegistrationByJWServiceItem: Self {
-        get {
-            .init(
-                type: "AssistanceRegistrationByJWServiceItem",
-                name: "經濟部設立登記",
-                alias: "經濟部設立",
-                primary: true,
-                tags: [
-                    "ServiceItem/AssistanceRegistrationByJWServiceItem"
-                ])
-        }
-    }
+//    public static var assistanceRegistrationByJWServiceItem: Self {
+//        get {
+//            .init(
+//                type: "AssistanceRegistrationByJWServiceItem",
+//                name: "經濟部設立登記",
+//                alias: "經濟部設立",
+//                primary: true,
+//                tags: [
+//                    "ServiceItem/AssistanceRegistrationByJWServiceItem"
+//                ])
+//        }
+//    }
 
     public static var assistanceWithCompanyCertificatationApplication: Self {
         get {
@@ -306,15 +306,15 @@ public struct ServiceItem: Codable, Sendable {
         }
     }
 
-    public static var assistanceWithCompanyCorporateSeal: Self {
+    public static var assistanceWithCompanySeal: Self {
         get {
             .init(
-                type: "AssistanceWithCompanyCorporateSeal",
+                type: "AssistanceWithCompanySeal",
                 name: "代刻公司章(大)",
                 alias: "公司章(大)",
                 primary: true,
                 tags: [
-                    "ServiceItem/AssistanceWithCompanyCorporateSeal"
+                    "ServiceItem/AssistanceWithCompanySeal"
                 ],
                 workItems: [
                     .init(type: "assistanceWithCompanySeal", content: "代刻公司章(大)"),
@@ -322,15 +322,15 @@ public struct ServiceItem: Codable, Sendable {
         }
     }
 
-    public static var assistanceWithChairmanCorporateSeal: Self {
+    public static var assistanceWithChairmanSeal: Self {
         get {
             .init(
-                type: "AssistanceWithChairmanCorporateSeal",
+                type: "AssistanceWithChairmanSeal",
                 name: "代刻公司章(小)",
                 alias: "公司章(小)",
                 primary: true,
                 tags: [
-                    "ServiceItem/AssistanceWithChairmanCorporateSeal"
+                    "ServiceItem/AssistanceWithChairmanSeal"
                 ],
                 workItems: [
                     .init(type: "assistanceWithChairmanSeal", content: "代刻公司章(小)"),
@@ -338,15 +338,15 @@ public struct ServiceItem: Codable, Sendable {
         }
     }
 
-    public static var assistanceWithCompanyStamps: Self {
+    public static var assistanceWithCompanyConvenienceSeal: Self {
         get {
             .init(
-                type: "AssistanceWithCompanyStamps",
+                type: "AssistanceWithCompanyConvenienceSeal",
                 name: "代刻公司便章(大)",
                 alias: "便章(大)",
                 primary: true,
                 tags: [
-                    "ServiceItem/AssistanceWithCompanyStamps"
+                    "ServiceItem/AssistanceWithCompanyConvenienceSeal"
                 ],
                 workItems: [
                     .init(type: "assistanceWithCompanyConvenienceSeal", content: "代刻公司便章(大)"),
@@ -354,15 +354,15 @@ public struct ServiceItem: Codable, Sendable {
         }
     }
 
-    public static var assistanceWithCompanyConvenienceStamps: Self {
+    public static var assistanceWithChairmanConvenienceSeal: Self {
         get {
             .init(
-                type: "AssistanceWithCompanyConvenienceStamps",
+                type: "AssistanceWithChairmanConvenienceSeal",
                 name: "代刻公司便章(小)",
                 alias: "便章(小)",
                 primary: true,
                 tags: [
-                    "ServiceItem/AssistanceWithCompanyConvenienceStamps"
+                    "ServiceItem/AssistanceWithChairmanConvenienceSeal"
                 ],
                 workItems: [
                     .init(type: "assistanceWithChairmanConvenienceSeal", content: "代刻公司便章(小)"),
@@ -370,15 +370,15 @@ public struct ServiceItem: Codable, Sendable {
         }
     }
 
-    public static var assistanceWithInvoiceStamp: Self {
+    public static var assistanceWithInvoiceSeal: Self {
         get {
             .init(
-                type: "AssistanceWithInvoiceStamp",
+                type: "AssistanceWithInvoiceSeal",
                 name: "代刻發票章",
                 alias: "發票章",
                 primary: true,
                 tags: [
-                    "ServiceItem/AssistanceWithInvoiceStamp"
+                    "ServiceItem/AssistanceWithInvoiceSeal"
                 ],
                 workItems: [
                     .init(type: "assistanceWithInvoiceSeal", content: "代刻發票章"),
