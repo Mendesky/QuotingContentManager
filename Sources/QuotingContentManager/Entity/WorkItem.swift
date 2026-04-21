@@ -3,14 +3,14 @@ public struct WorkItem: Codable, Sendable, Equatable {
     public let content: String
     public let taxAccountContent: String?
     public let description: String?
-    public let subItems: [String]?
+    public let subItems: [String]
 
     public init(
         type: String,
         content: String,
         taxAccountContent: String? = nil,
         description: String? = nil,
-        subItems: [String]? = nil
+        subItems: [String] = []
     ) {
         self.type = type
         self.content = content
