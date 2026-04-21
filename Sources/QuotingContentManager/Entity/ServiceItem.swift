@@ -8,6 +8,7 @@
 public struct ServiceItem: Codable, Sendable {
     public let type: String
     public let name: String
+    public let taxAccountName: String?
     public let alias: String
     public let primary: Bool
     public let term: String?
@@ -17,6 +18,7 @@ public struct ServiceItem: Codable, Sendable {
     public init(
         type: String,
         name: String,
+        taxAccountName: String? = nil,
         alias: String,
         primary: Bool,
         term: String? = nil,
@@ -25,6 +27,7 @@ public struct ServiceItem: Codable, Sendable {
     ) {
         self.type = type
         self.name = name
+        self.taxAccountName = taxAccountName
         self.alias = alias
         self.primary = primary
         self.term = term
@@ -36,6 +39,7 @@ public struct ServiceItem: Codable, Sendable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.type = try container.decode(String.self, forKey: .type)
         self.name = try container.decode(String.self, forKey: .name)
+        self.taxAccountName = try container.decodeIfPresent(String.self, forKey: .taxAccountName)
         self.alias = try container.decode(String.self, forKey: .alias)
         self.primary = try container.decode(Bool.self, forKey: .primary)
         self.term = try container.decodeIfPresent(String.self, forKey: .term)
@@ -51,6 +55,10 @@ public struct ServiceItem: Codable, Sendable {
         workItems.contains { $0.type == workItemType }
     }
 
+    public func displayName(forTaxAccount isTaxAccount: Bool) -> String {
+        isTaxAccount ? (taxAccountName ?? name) : name
+    }
+
 
     // MARK: 主要服務項目
     public static var accounting: Self {
@@ -58,6 +66,7 @@ public struct ServiceItem: Codable, Sendable {
             .init(
                 type: "Accounting",
                 name: "會計帳務處理作業",
+                taxAccountName: "稅務帳務處理作業",
                 alias: "記帳",
                 primary: true,
                 term: "由 貴公司委託本事務所代辦相關會計工作，包括以下內容：",
@@ -191,6 +200,7 @@ public struct ServiceItem: Codable, Sendable {
         }
     }
 
+    // TODO: 等下游 enum 新增對應 case 再恢復
 //    public static var settlementReview: Self {
 //        get {
 //            .init(
@@ -277,6 +287,7 @@ public struct ServiceItem: Codable, Sendable {
         }
     }
 
+    // TODO: 等下游 enum 新增對應 case 再恢復
 //    public static var assistanceRegistrationByJWServiceItem: Self {
 //        get {
 //            .init(
