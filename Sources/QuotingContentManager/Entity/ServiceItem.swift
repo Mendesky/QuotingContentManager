@@ -32,6 +32,17 @@ public struct ServiceItem: Codable, Sendable {
         self.workItems = workItems
     }
 
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.type = try container.decode(String.self, forKey: .type)
+        self.name = try container.decode(String.self, forKey: .name)
+        self.alias = try container.decode(String.self, forKey: .alias)
+        self.primary = try container.decode(Bool.self, forKey: .primary)
+        self.term = try container.decodeIfPresent(String.self, forKey: .term)
+        self.tags = try container.decodeIfPresent([String].self, forKey: .tags) ?? []
+        self.workItems = try container.decodeIfPresent([WorkItem].self, forKey: .workItems) ?? []
+    }
+
     public func workItem(type: String) -> WorkItem? {
         workItems.first { $0.type == type }
     }
@@ -46,24 +57,30 @@ public struct ServiceItem: Codable, Sendable {
         get {
             .init(
                 type: "Accounting",
-                name: "會計帳務作業",
+                name: "會計帳務處理作業",
                 alias: "記帳",
                 primary: true,
+                term: "由 貴公司委託本事務所代辦相關會計工作，包括以下內容：",
                 tags: [
                     "ServiceItem/Accounting"
                 ],
                 workItems: [
-                    .init(type: "accounting", name: "平時稅務會計帳務作業"),
-                    .init(type: "fundingProcess", name: "資金流程製作"),
-                    .init(type: "standardReporting", name: "標準報表編製"),
-                    .init(type: "customizedReporting", name: "客製化報表編製"),
-                    .init(type: "businessTaxFiling", name: "營業稅申報"),
-                    .init(type: "costAnalysis", name: "成本表編製作業"),
-                    .init(type: "financialSettlement", name: "年底會計之結算作業"),
-                    .init(type: "provisionalIncomeTaxReturnFiling", name: "年度中暫繳申報"),
-                    .init(type: "profitseekingEnterpriseIncomeTaxFiling", name: "營利事業所得稅申報作業"),
-                    .init(type: "undistributedEarningsFiling", name: "未分配盈餘加徵百分之五結算申報作業"),
-                    .init(type: "withholdingStatementFiling", name: "年度各類給付扣繳（股利）憑單開立與申報作業"),
+                    .init(
+                        type: "accounting",
+                        content: "平時會計帳務作業",
+                        taxAccountContent: "平時稅務帳務作業",
+                        description: "憑證整理、傳票登打、相關帳簿與代編報表"
+                    ),
+                    .init(type: "fundingProcess", content: "資金流程作業"),
+                    .init(type: "standardReporting", content: "標準報表編製"),
+                    .init(type: "customizedReporting", content: "客製化報表編製"),
+                    .init(type: "businessTaxFiling", content: "營業稅申報作業"),
+                    .init(type: "costAnalysis", content: "成本表編製作業"),
+                    .init(type: "financialSettlement", content: "年底結算作業"),
+                    .init(type: "provisionalIncomeTaxReturnFiling", content: "年度中暫繳申報"),
+                    .init(type: "profitseekingEnterpriseIncomeTaxFiling", content: "營利事業所得稅結算申報作業"),
+                    .init(type: "undistributedEarningsFiling", content: "未分配盈餘結算申報作業"),
+                    .init(type: "withholdingStatementFiling", content: "各類給付扣繳(股利)憑單申報作業"),
                 ])
         }
     }
@@ -79,7 +96,7 @@ public struct ServiceItem: Codable, Sendable {
                     "ServiceItem/AccountingReform"
                 ],
                 workItems: [
-                    .init(type: "accountingReform", name: "會計帳務重整作業"),
+                    .init(type: "accountingReform", content: "會計帳務重整作業"),
                 ])
         }
     }
@@ -97,7 +114,7 @@ public struct ServiceItem: Codable, Sendable {
                     "Need/BusinessClientAssistance",
                 ],
                 workItems: [
-                    .init(type: "financialComplianceAudit", name: "財務報表查核簽證"),
+                    .init(type: "financialComplianceAudit", content: "財務報表查核簽證"),
                 ])
         }
     }
@@ -106,16 +123,16 @@ public struct ServiceItem: Codable, Sendable {
         get {
             .init(
                 type: "TaxComplianceAudit",
-                name: "財務報表查核簽證",
+                name: "營利事業所得稅查核簽證",
                 alias: "稅簽",
                 primary: true,
-                term: "營利事業所得稅查核簽證主要係包括執行營利事業所得稅結算申報程序及依照「所得稅法」規定進行會計師查核簽證作業。\n未分配盈餘主要係包括未分配盈餘之申報與查核。",
+                term: "營利事業所得稅查核簽證主要係包括執行營利事業所得稅結算申報程序及依照「所得稅法」規定進行會計師查核簽證作業及國稅局查核事項協助。\n未分配盈餘主要係分配盈餘結算申報與查核。",
                 tags: [
                     "ServiceItem/TaxComplianceAudit",
                     "Need/BusinessClientAssistance",
                 ],
                 workItems: [
-                    .init(type: "taxComplianceAudit", name: "營利事業所得稅查核簽證與未分配盈餘查核"),
+                    .init(type: "taxComplianceAudit", content: "營利事業所得稅查核簽證與未分配盈餘查核"),
                 ])
         }
     }
@@ -132,8 +149,8 @@ public struct ServiceItem: Codable, Sendable {
                     "ServiceItem/CashierOperation"
                 ],
                 workItems: [
-                    .init(type: "accountsReceivablePayablePostingAndOffsetting", name: "應收、應付款項立帳、沖銷及科目餘額編製"),
-                    .init(type: "onlineBankingPaymentAggregator", name: "整理、彙總及輸入網銀付款資料"),
+                    .init(type: "accountsReceivablePayablePostingAndOffsetting", content: "應收、應付款項立帳、沖銷及科目餘額編製"),
+                    .init(type: "onlineBankingPaymentAggregator", content: "整理、彙總及輸入網銀付款資料"),
                 ])
         }
     }
@@ -150,11 +167,26 @@ public struct ServiceItem: Codable, Sendable {
                     "ServiceItem/PayrollSupportOperation"
                 ],
                 workItems: [
-                    .init(type: "monthlyPayrollReviewOperation", name: "每月薪資複核作業"),
-                    .init(type: "laborInsuranceOperation", name: "每月勞保、健保及勞退作業"),
-                    .init(type: "secondGenerationNationalHealthInsuranceFiling", name: "二代健保申報作業"),
-                    .init(type: "annualInsurancePaymentCertificate", name: "提供年度保險費繳納證明單"),
-                    .init(type: "severancePayCalculation", name: "資遣費計算"),
+                    .init(
+                        type: "monthlyPayrollReviewOperation",
+                        content: "每月薪資複核作業",
+                        subItems: [
+                            "員工出、缺勤之薪資複核",
+                            "薪資表、薪資條製作",
+                            "薪資扣繳稅款及二代健保繳費計算作業",
+                        ]
+                    ),
+                    .init(
+                        type: "laborInsuranceOperation",
+                        content: "每月勞、健保及勞工退休金作業",
+                        subItems: [
+                            "勞、健保及勞工退休金之核算",
+                            "員工加、退保及調整作業",
+                        ]
+                    ),
+                    .init(type: "secondGenerationNationalHealthInsuranceFiling", content: "二代健保申報作業"),
+                    .init(type: "annualInsurancePaymentCertificate", content: "提供年度保險費繳納證明單"),
+                    .init(type: "severancePayCalculation", content: "資遣費計算"),
                 ])
         }
     }
@@ -183,7 +215,7 @@ public struct ServiceItem: Codable, Sendable {
                     "ServiceItem/Customized"
                 ],
                 workItems: [
-                    .init(type: "customized", name: "自訂"),
+                    .init(type: "customized", content: "自訂"),
                 ])
         }
     }
@@ -200,13 +232,13 @@ public struct ServiceItem: Codable, Sendable {
                     "ServiceItem/CompanyRegistration"
                 ],
                 workItems: [
-                    .init(type: "companyNameAndBusinessScopeReservation", name: "經濟部公司名稱預查"),
-                    .init(type: "economicMinistryRegistration", name: "經濟部設立登記"),
-                    .init(type: "regulationsGoverningAuditingAndAttestationCertification", name: "設立資本額查核簽證"),
-                    .init(type: "antiMoneyLaunderingCertification", name: "防洗錢查核簽證"),
-                    .init(type: "exporterImporterRegistration", name: "國貿局進出口登記"),
-                    .init(type: "companyRegistration", name: "國稅局營業登記"),
-                    .init(type: "uniformInvoicePurchasing", name: "國稅局購票證申報"),
+                    .init(type: "companyNameAndBusinessScopeReservation", content: "經濟部公司名稱預查"),
+                    .init(type: "economicMinistryRegistration", content: "經濟部設立登記"),
+                    .init(type: "regulationsGoverningAuditingAndAttestationCertification", content: "設立資本額查核簽證"),
+                    .init(type: "antiMoneyLaunderingCertification", content: "防洗錢查核簽證"),
+                    .init(type: "exporterImporterRegistration", content: "國貿局進出口登記"),
+                    .init(type: "companyRegistration", content: "國稅局營業登記"),
+                    .init(type: "uniformInvoicePurchasing", content: "國稅局購票證申報"),
                 ])
         }
     }
@@ -223,8 +255,8 @@ public struct ServiceItem: Codable, Sendable {
                     "ServiceItem/CTP"
                 ],
                 workItems: [
-                    .init(type: "ctp", name: "年度CTP申報"),
-                    .init(type: "ctpOfCompanyRegistration", name: "經濟部CTP申報事宜"),
+                    .init(type: "ctp", content: "年度CTP申報"),
+                    .init(type: "ctpOfCompanyRegistration", content: "經濟部CTP申報事宜"),
                 ])
         }
     }
@@ -240,7 +272,7 @@ public struct ServiceItem: Codable, Sendable {
                     "ServiceItem/AssistanceAnnualSupplementaryPremiumDeductionDetailsReporting"
                 ],
                 workItems: [
-                    .init(type: "assistanceAnnualSupplementaryPremiumDeductionDetailsReporting", name: "年度補充保費扣費明細彙報"),
+                    .init(type: "assistanceAnnualSupplementaryPremiumDeductionDetailsReporting", content: "年度補充保費扣費明細彙報"),
                 ])
         }
     }
@@ -269,7 +301,7 @@ public struct ServiceItem: Codable, Sendable {
                     "ServiceItem/AssistanceWithCompanyCertificatationApplication"
                 ],
                 workItems: [
-                    .init(type: "assistanceWithCompanyCertificatationApplication", name: "代辦工商憑證申請"),
+                    .init(type: "assistanceWithCompanyCertificatationApplication", content: "代辦工商憑證申請"),
                 ])
         }
     }
@@ -285,7 +317,7 @@ public struct ServiceItem: Codable, Sendable {
                     "ServiceItem/AssistanceWithCompanyCorporateSeal"
                 ],
                 workItems: [
-                    .init(type: "assistanceWithCompanySeal", name: "代刻公司章(大)"),
+                    .init(type: "assistanceWithCompanySeal", content: "代刻公司章(大)"),
                 ])
         }
     }
@@ -301,7 +333,7 @@ public struct ServiceItem: Codable, Sendable {
                     "ServiceItem/AssistanceWithChairmanCorporateSeal"
                 ],
                 workItems: [
-                    .init(type: "assistanceWithChairmanSeal", name: "代刻公司章(小)"),
+                    .init(type: "assistanceWithChairmanSeal", content: "代刻公司章(小)"),
                 ])
         }
     }
@@ -317,7 +349,7 @@ public struct ServiceItem: Codable, Sendable {
                     "ServiceItem/AssistanceWithCompanyStamps"
                 ],
                 workItems: [
-                    .init(type: "assistanceWithCompanyConvenienceSeal", name: "代刻公司便章(大)"),
+                    .init(type: "assistanceWithCompanyConvenienceSeal", content: "代刻公司便章(大)"),
                 ])
         }
     }
@@ -333,7 +365,7 @@ public struct ServiceItem: Codable, Sendable {
                     "ServiceItem/AssistanceWithCompanyConvenienceStamps"
                 ],
                 workItems: [
-                    .init(type: "assistanceWithChairmanConvenienceSeal", name: "代刻公司便章(小)"),
+                    .init(type: "assistanceWithChairmanConvenienceSeal", content: "代刻公司便章(小)"),
                 ])
         }
     }
@@ -349,7 +381,7 @@ public struct ServiceItem: Codable, Sendable {
                     "ServiceItem/AssistanceWithInvoiceStamp"
                 ],
                 workItems: [
-                    .init(type: "assistanceWithInvoiceSeal", name: "代刻發票章"),
+                    .init(type: "assistanceWithInvoiceSeal", content: "代刻發票章"),
                 ])
         }
     }
@@ -365,7 +397,7 @@ public struct ServiceItem: Codable, Sendable {
                     "ServiceItem/AssistanceWithLaborAndHealthInsuranceInsuredUnitSetting"
                 ],
                 workItems: [
-                    .init(type: "assistanceWithLaborAndHealthInsuranceInsuredUnitSetting", name: "代辦勞健保投保單位設立"),
+                    .init(type: "assistanceWithLaborAndHealthInsuranceInsuredUnitSetting", content: "代辦勞健保投保單位設立"),
                 ])
         }
     }
@@ -381,7 +413,7 @@ public struct ServiceItem: Codable, Sendable {
                     "ServiceItem/OwnerOccupiedResidencePartForBusinessApplication"
                 ],
                 workItems: [
-                    .init(type: "ownerOccupiedResidencePartForBusinessApplication", name: "自用住宅申請部分供營業用"),
+                    .init(type: "ownerOccupiedResidencePartForBusinessApplication", content: "自用住宅申請部分供營業用"),
                 ])
         }
     }

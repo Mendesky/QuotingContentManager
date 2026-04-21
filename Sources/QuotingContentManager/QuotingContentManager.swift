@@ -40,6 +40,10 @@ public struct QuotingContentManager: Sendable {
         getServiceItem(type: serviceType)?.workItem(type: workItemType)
     }
 
+    public func accountingServiceItemName(forTaxAccount isTaxAccount: Bool) -> String {
+        isTaxAccount ? "稅務帳務處理作業" : "會計帳務處理作業"
+    }
+
     public func getNote(uniqueCode: String) -> ContractNoteInfo? {
         contractNoteManager.notes.filter { !$0.deprecated }.first { $0.uniqueCode == uniqueCode }
     }
