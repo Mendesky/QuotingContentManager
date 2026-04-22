@@ -132,7 +132,7 @@ extension QuotingContentManager {
 
     public var serviceScope: Copywriting {
         get {
-            .init(title: "服務範圍及內容", content: "本項專案作業之服務範圍將根據相關稅務法令、企業會計準則%AuditStandardClause%之規定，由 貴公司委託本事務所辦理有關%ServiceItemNames%之專業服務，俾能符合相關法令規定與提升整體%AccountingWorkName%品質。有關具體服務事項如下：")
+            .init(title: "服務範圍及內容", content: "本項專案作業之服務範圍將根據相關稅務法令、企業會計準則與會計師查核簽證準則之規定，由 貴公司委託本事務所辦理有關%ServiceItemNames%之專業服務，俾能符合相關法令規定與提升整體%AccountingWorkName%品質。有關具體服務事項如下：")
         }
     }
 }
