@@ -1,5 +1,5 @@
 extension QuotingContentManager {
-    public func accountingCategory(forAccountingType rawValue: String) -> String {
+    public func accountingWorkDisplayName(forAccountingType rawValue: String) -> String {
         switch rawValue {
         case "taxAccount":
             return "稅務帳務"
