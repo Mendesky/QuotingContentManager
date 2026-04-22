@@ -120,7 +120,6 @@ public struct ServiceItem: Codable, Sendable {
                 term: "財務報表均依照「審計準則」與「企業會計準則」查核並出具財務簽證查核報告書，包括會計師查核報告書、財務報表、財務報表附註及相關財務資訊等項目。",
                 tags: [
                     "ServiceItem/FinancialComplianceAudit",
-                    "Need/BusinessClientAssistance",
                 ],
                 workItems: [
                     .init(type: "financialComplianceAudit", content: "財務報表查核簽證"),
@@ -138,7 +137,6 @@ public struct ServiceItem: Codable, Sendable {
                 term: "營利事業所得稅查核簽證主要係包括執行營利事業所得稅結算申報程序及依照「所得稅法」規定進行會計師查核簽證作業及國稅局查核事項協助。\n未分配盈餘主要係分配盈餘結算申報與查核。",
                 tags: [
                     "ServiceItem/TaxComplianceAudit",
-                    "Need/BusinessClientAssistance",
                 ],
                 workItems: [
                     .init(type: "taxComplianceAudit", content: "營利事業所得稅查核簽證與未分配盈餘查核"),
