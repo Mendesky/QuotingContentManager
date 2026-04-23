@@ -14,6 +14,7 @@ public struct ServiceItem: Codable, Sendable {
     public let term: String?
     public var tags: [String]
     public let workItems: [WorkItem]
+    public let scopeTerms: [ScopeTerm]
 
     public init(
         type: String,
@@ -23,7 +24,8 @@ public struct ServiceItem: Codable, Sendable {
         primary: Bool,
         term: String? = nil,
         tags: [String] = [],
-        workItems: [WorkItem] = []
+        workItems: [WorkItem] = [],
+        scopeTerms: [ScopeTerm] = []
     ) {
         self.type = type
         self.name = name
@@ -33,6 +35,7 @@ public struct ServiceItem: Codable, Sendable {
         self.term = term
         self.tags = tags
         self.workItems = workItems
+        self.scopeTerms = scopeTerms
     }
 
     public init(from decoder: Decoder) throws {
@@ -45,6 +48,13 @@ public struct ServiceItem: Codable, Sendable {
         self.term = try container.decodeIfPresent(String.self, forKey: .term)
         self.tags = try container.decodeIfPresent([String].self, forKey: .tags) ?? []
         self.workItems = try container.decodeIfPresent([WorkItem].self, forKey: .workItems) ?? []
+        self.scopeTerms = try container.decodeIfPresent([ScopeTerm].self, forKey: .scopeTerms) ?? []
+    }
+
+    public var effectiveScopeTerms: [ScopeTerm] {
+        if !scopeTerms.isEmpty { return scopeTerms }
+        if let term { return [.init(name: name, content: term)] }
+        return []
     }
 
     public func workItem(type: String) -> WorkItem? {
@@ -134,12 +144,21 @@ public struct ServiceItem: Codable, Sendable {
                 name: "營利事業所得稅查核簽證",
                 alias: "稅簽",
                 primary: true,
-                term: "營利事業所得稅查核簽證主要係包括執行營利事業所得稅結算申報程序及依照「所得稅法」規定進行會計師查核簽證作業及國稅局查核事項協助。\n未分配盈餘主要係分配盈餘結算申報與查核。",
                 tags: [
                     "ServiceItem/TaxComplianceAudit",
                 ],
                 workItems: [
                     .init(type: "taxComplianceAudit", content: "營利事業所得稅查核簽證與未分配盈餘查核"),
+                ],
+                scopeTerms: [
+                    .init(
+                        name: "營利事業所得稅查核簽證",
+                        content: "營利事業所得稅查核簽證主要係包括執行營利事業所得稅結算申報程序及依照「所得稅法」規定進行會計師查核簽證作業及國稅局查核事項協助。"
+                    ),
+                    .init(
+                        name: "未分配盈餘查核簽證",
+                        content: "主要係分配盈餘結算申報與查核。"
+                    ),
                 ])
         }
     }
