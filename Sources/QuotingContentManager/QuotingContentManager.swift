@@ -128,7 +128,7 @@ extension QuotingContentManager {
     
     public var letter: Copywriting {
         get {
-            .init(title: "本公司同意委託 貴事務所執行本公司有關%ServiceItemNames%之專業報價項目及公費，請查照。", content: "茲將附上%CompanyName%有關%ServiceItemNames%之專業服務公費報價單。\n我們希望以最專業多元的服務與 貴公司長久配合，公費內容若經確認，煩請將最後一頁同意函簽章並回傳至敝事務所，謝謝您的合作。")
+            .init(title: "本公司同意委託 貴事務所對本公司執行有關%ServiceItemNames%之專業服務及公費報價，請查照。", content: "茲將附上%CompanyName%有關%ServiceItemNames%之專業服務公費報價單。\n我們希望以最專業多元的服務與 貴公司長久配合，公費內容若經確認，煩請將最後一頁同意函簽章並回覆至敝事務所，謝謝您的合作。")
         }
     }
     
