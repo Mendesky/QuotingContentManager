@@ -9,7 +9,7 @@ public struct PaymentItemManager: Sendable {
     public var items: [Item] = [
         .init(
             uniqueCode: "1",
-            content: "財務簽證依預估%FinancialComplianceAuditGroundName%計%FinancialComplianceAuditGroundAmount%報價。",
+            content: "財務簽證依預估%FinancialComplianceAuditGroundName%%FinancialComplianceAuditGroundAmount%報價。",
             traits: ["ServiceItem/FinancialComplianceAudit"]
         ),
         .init(
@@ -19,7 +19,7 @@ public struct PaymentItemManager: Sendable {
         ),
         .init(
             uniqueCode: "3",
-            content: "會計帳務處理作業依照預估年營收計%EstimatedRevenue%報價。",
+            content: "%AccountingWorkName%處理作業依照預估年營收計%EstimatedRevenue%報價。",
             traits: ["ServiceItem/Accounting"]
         ),
     ]
