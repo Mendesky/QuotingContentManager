@@ -8,17 +8,16 @@
 public struct ContractNoteManager: Sendable {
     public var notes: [ContractNoteInfo] = [
         .init(uniqueCode: "1", traits: ["ServiceItem/CTP"], weight: 30, content: """
-        附加服務選項：代辦年度 CTP 申報(每年 3 月)，依據公司法增訂第 22 條之 1 是為了配合洗錢防制政策，協助建置完善洗錢防制體制，強化洗錢防制作為，以增加法人(公司)之透明度，並有效掌握公司負責人(董事、監察人及經理人)及主要股東(持有超過 10%股份或出資額股東)之持股或出資額。
+        附加服務選項：代辦年度CTP申報(每年3月)，依據公司法增訂第22條之1是為了配合洗錢防制政策，協助建置完善洗錢防制體制，強化洗錢防制作為，以增加法人(公司)之透明度，並有效掌握公司負責人(董事、監察人及經理人)及主要股東(持有超過10%股份或出資額股東)之持股或出資額。
         """),
         .init(uniqueCode: "2", traits: ["general", "Tip/benefit"], weight: 0, content: """
-        最新稅務訊息通知及教育訓練免費參加本事務所將定期以電子郵件寄送最新稅務法令之變更、稅捐獎勵減免、會計審計學術專論等有關訊息供　貴公司參考。
-        另外，本事務所將針對客戶之需要，開設不同財稅課程，對於本事務所之客戶將可免費參加，以使　貴公司與本事務所共同成長。
+        最新稅務訊息通知，本事務所另將不定期以電子郵件寄送最新稅務法令之變更、稅捐獎勵減免等有關訊息供　貴公司參考，亦可免費參加本所舉辦之教育訓練課程，以使　貴公司與本事務所共同成長。
         """),
         .init(uniqueCode: "3", traits: ["ServiceItem/Accounting"], weight: 15, content: """
-        本事務所將依據  貴公司所提供之資料及文件，利用會計專業知識蒐集、分類及彙總財務資訊，進而提供會計帳務處理作業服務項目，無須對資訊加以查核或核閱，所提供之財務資訊亦不提供任何程度之確信。
+        本事務所提供%AccountingWorkName%處理作業服務將依據　貴公司所提供之資料及文件，利用會計專業知識蒐集、分類及彙總資訊，進而提供%AccountingWorkName%處理作業服務項目，本事務所對資料並無查核或核閱義務，本事務所僅係依 貴公司所提供之資訊完成%AccountingWorkName%處理作業服務。
         """),
         .init(uniqueCode: "4", traits: ["ServiceItem/Accounting"], weight: 15, content: """
-        本事務所所提供會計帳務處理作業服務，僅限協助 貴公司完成相關專業服務使用。除本事務所有可歸責之情形外，如本事務所於本報價單意旨提供會計帳務處理作業服務事項，而遭致第三人向本事務所為法律上之主張而致生損害時， 貴公司同意負責補償。另未經本事務所書面同意，本事務所所提供之服務不得提供他人使用(其中不包含提供予股東開會使用)；且若有此種情形致他人權益受損，本事務所不負任何責任。
+        本事務所所提供%AccountingWorkName%處理作業服務，僅係依 貴公司提供之文件與資料分類及彙總，並僅限協助　貴公司為%AccountingWorkName%處理作業服務使用。除本事務所分類及彙總有過失之情形外，如本事務所於本報價單意旨提供%AccountingWorkName%處理作業服務事項，而遭致第三人向本事務所為法律上之主張而致生損害時，貴公司同意負責補償該損害。另未經本事務所書面同意，本事務所所提供之服務不得提供他人使用；且若有此種情形致他人權益受損，本事務所不負任何責任。
         """),
         .init(uniqueCode: "7", traits: ["ServiceItem/CompanyRegistration"], weight: 66, content: """
         工商登記費用不包含政府規費及代墊雜項費用，服務公費及代墊費用請於辦理完成時支付。
@@ -26,8 +25,7 @@ public struct ContractNoteManager: Sendable {
         """),
         .init(uniqueCode: "8", traits: ["ServiceItem/FinancialComplianceAudit"], weight: 75, content: """
         %FinancialComplianceAuditGroundName%若有巨額變動，將另與　貴公司討論報價金額。
-        簽證公費請於當年底時支付半數，另外半數請於交付報告時支付。
-        承辦委任事項所發生之代墊費用，包括機票、簽證、住宿等，另行檢具相關憑證向 貴公司請款。
+        簽證公費請於當年度末日前支付半數，另外半數請於次年度五月末日前支付。
         """),
         .init(uniqueCode: "10", traits: [
             "ServiceItem/TaxComplianceAudit",
@@ -41,8 +39,7 @@ public struct ContractNoteManager: Sendable {
             ]),
         ], weight: 70, content: """
         營業收入總額若有巨額變動，將另與　貴公司討論報價金額。
-        簽證公費請於當年底時支付半數，另外半數請於交付報告時支付。
-        承辦委任事項所發生之代墊費用，包括機票、簽證、住宿等，另行檢具相關憑證向 貴公司請款。
+        簽證公費請於當年度末日前支付半數，另外半數請於次年度五月末日前支付。
         """),
         .init(uniqueCode: "12", traits: [
             "ServiceItem/AssistanceAnnualSupplementaryPremiumDeductionDetailsReporting",
@@ -54,8 +51,9 @@ public struct ContractNoteManager: Sendable {
                 "ServiceItem/Accounting",
             ]),
         ], weight: 65, content: """
-        營業收入總額及憑證量若有巨額變動或變更稅務申報方式，將另與　貴公司討論報價金額。
-        %AccountingPeriod%，並%AccountingBilling%
+        營業收入總額及憑證量若有巨額變動或變更申報方式，將另與　貴公司討論報價金額。
+        %AccountingWorkName%處理作業費用一年以十四個月計算，並請於單月份之末日前支付前兩個月之公費(舉例而言，3月31日前應支付1月份與2月份之公費，而當年度11月與12月之費用應於次年1月31日前支付)，並應支付至本事務所指定之銀行帳戶。
+        承辦委任事項所發生之代墊費用，包括機票、簽證、住宿等，另行檢具相關憑證向 貴公司請款。
         """),
         .init(uniqueCode: "15", mutex: .tags(["ServiceItemConfig/is_providing_electronic_file:false"]), traits: [
             .init(tags: [
@@ -94,9 +92,9 @@ public struct ContractNoteManager: Sendable {
         ], weight: 20, content: """
         營利事業所得稅查核簽證包括營利事業所得稅結算申報及依「所得稅法」規定進行查核簽證。
         有關會計師稅務簽證之優點列舉如下：
-        1、提高交際費限額，較普通申報案件高出 30%。
-        2、享有盈虧互抵之優惠。
-        3、降低國稅局抽查查帳比率，倘若有查帳情況將由本事務所會計師親至國稅局處理之。
+        1.提高交際費限額，較普通申報案件高出30%。
+        2.享有盈虧互抵之優惠。
+        3.降低國稅局抽查查帳比率，倘若有查帳情況將由本事務所會計師親至國稅局處理之。
         """),
         .init(uniqueCode: "19", mutex: .codes(["18"]), traits: [
             .init(tags: [
@@ -106,13 +104,12 @@ public struct ContractNoteManager: Sendable {
         ], weight: 20, content: """
         營利事業所得稅查核簽證包括營利事業所得稅結算申報及依「所得稅法」規定進行查核簽證。
         有關會計師稅務簽證之優點列舉如下：
-        1、提高交際費限額，較普通申報案件高出 30%。
-        2、享有盈虧互抵之優惠。
-        3、降低國稅局抽查查帳比率，倘若有查帳情況將由本事務所會計師親至國稅局處理之。
-        4、未分配盈餘之課稅規定，其課稅所得額以會計師簽證之申報數為準，不須按核定所得額計算。
+        1.提高交際費限額，較普通申報案件高出30%。
+        2.享有盈虧互抵之優惠。
+        3.降低國稅局抽查查帳比率，倘若有查帳情況將由本事務所會計師親至國稅局處理之。
         """),
         .init(uniqueCode: "20", traits: ["ServiceItem/Accounting"], weight: 5, content: """
-        採查帳申報(非稅簽案件)當年度若需協助國稅局營所稅查核，將另與　貴公司討論服務費報價金額。
+        採非稅務簽證申報之案件當年度若需協助國稅局營所稅查核，將另與　貴公司討論服務費報價金額。
         """),
     ]
 
