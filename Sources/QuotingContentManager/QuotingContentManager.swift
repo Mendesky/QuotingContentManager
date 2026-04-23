@@ -29,6 +29,7 @@ public struct QuotingContentManager: Sendable {
 
     public var contractNoteManager: ContractNoteManager = .init()
     public var businessClientAssistanceManager: BusinessClientAssistanceManager = .init()
+    public var paymentItemManager: PaymentItemManager = .init()
 
     public init() {}
 
@@ -88,6 +89,14 @@ public struct QuotingContentManager: Sendable {
 
     public func fetchBusinessClientAssistances(symmetricDifference tags: [String]) -> [BusinessClientAssistanceManager.Item] {
         businessClientAssistanceManager.items.filter { !$0.isSubsetOf(tags: tags) }
+    }
+
+    public func fetchPaymentItems(subsetOf tags: [String]) -> [PaymentItemManager.Item] {
+        paymentItemManager.items.filter { $0.isSubsetOf(tags: tags) }
+    }
+
+    public func fetchPaymentItems(serviceItem: String) -> [PaymentItemManager.Item] {
+        fetchPaymentItems(subsetOf: ["ServiceItem/\(serviceItem)"])
     }
 
     public func findContactNoteIndexToInsert(willInsert noteInfo: ContractNoteInfo, inUniqueCodes uniqueCodes: [String?]) -> Int? {

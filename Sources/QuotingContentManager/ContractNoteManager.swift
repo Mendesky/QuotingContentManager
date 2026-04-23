@@ -25,7 +25,7 @@ public struct ContractNoteManager: Sendable {
         如股東超過5人，第6位起每位加收新台幣500元之防制洗錢查核費。
         """),
         .init(uniqueCode: "8", traits: ["ServiceItem/FinancialComplianceAudit"], weight: 75, content: """
-        財務簽證依預估%FinancialComplianceAuditGroundName%計%FinancialComplianceAuditGroundAmount%報價，%FinancialComplianceAuditGroundName%若有巨額變動，將另與　貴公司討論報價金額。
+        %FinancialComplianceAuditGroundName%若有巨額變動，將另與　貴公司討論報價金額。
         簽證公費請於當年底時支付半數，另外半數請於交付報告時支付。
         承辦委任事項所發生之代墊費用，包括機票、簽證、住宿等，另行檢具相關憑證向 貴公司請款。
         """),
@@ -40,7 +40,7 @@ public struct ContractNoteManager: Sendable {
                 "ServiceItem/TaxComplianceAudit",
             ]),
         ], weight: 70, content: """
-        稅務簽證依照預估年營收計%EstimatedRevenue%報價，營業收入總額若有巨額變動，將另與　貴公司討論報價金額。
+        營業收入總額若有巨額變動，將另與　貴公司討論報價金額。
         簽證公費請於當年底時支付半數，另外半數請於交付報告時支付。
         承辦委任事項所發生之代墊費用，包括機票、簽證、住宿等，另行檢具相關憑證向 貴公司請款。
         """),
@@ -54,7 +54,7 @@ public struct ContractNoteManager: Sendable {
                 "ServiceItem/Accounting",
             ]),
         ], weight: 65, content: """
-        會計帳務處理作業依照預估年營收計%EstimatedRevenue%報價，營業收入總額及憑證量若有巨額變動或變更稅務申報方式，將另與　貴公司討論報價金額。
+        營業收入總額及憑證量若有巨額變動或變更稅務申報方式，將另與　貴公司討論報價金額。
         %AccountingPeriod%，並%AccountingBilling%
         """),
         .init(uniqueCode: "15", mutex: .tags(["ServiceItemConfig/is_providing_electronic_file:false"]), traits: [
