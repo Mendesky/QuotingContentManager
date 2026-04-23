@@ -13,12 +13,6 @@ public struct ContractNoteManager: Sendable {
         .init(uniqueCode: "2", traits: ["general", "Tip/benefit"], weight: 0, content: """
         最新稅務訊息通知，本事務所另將不定期以電子郵件寄送最新稅務法令之變更、稅捐獎勵減免等有關訊息供　貴公司參考，亦可免費參加本所舉辦之教育訓練課程，以使　貴公司與本事務所共同成長。
         """),
-        .init(uniqueCode: "3", traits: ["ServiceItem/Accounting"], weight: 15, content: """
-        本事務所提供%AccountingWorkName%處理作業服務將依據　貴公司所提供之資料及文件，利用會計專業知識蒐集、分類及彙總資訊，進而提供%AccountingWorkName%處理作業服務項目，本事務所對資料並無查核或核閱義務，本事務所僅係依 貴公司所提供之資訊完成%AccountingWorkName%處理作業服務。
-        """),
-        .init(uniqueCode: "4", traits: ["ServiceItem/Accounting"], weight: 15, content: """
-        本事務所所提供%AccountingWorkName%處理作業服務，僅係依 貴公司提供之文件與資料分類及彙總，並僅限協助　貴公司為%AccountingWorkName%處理作業服務使用。除本事務所分類及彙總有過失之情形外，如本事務所於本報價單意旨提供%AccountingWorkName%處理作業服務事項，而遭致第三人向本事務所為法律上之主張而致生損害時，貴公司同意負責補償該損害。另未經本事務所書面同意，本事務所所提供之服務不得提供他人使用；且若有此種情形致他人權益受損，本事務所不負任何責任。
-        """),
         .init(uniqueCode: "7", traits: ["ServiceItem/CompanyRegistration"], weight: 66, content: """
         工商登記費用不包含政府規費及代墊雜項費用，服務公費及代墊費用請於辦理完成時支付。
         如股東超過5人，第6位起每位加收新台幣500元之防制洗錢查核費。
