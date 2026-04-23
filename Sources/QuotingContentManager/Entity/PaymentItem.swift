@@ -18,8 +18,7 @@ public extension PaymentItemManager {
         }
 
         package func isSubsetOf(tags: [String]) -> Bool {
-            if traits.isEmpty { return true }
-            return traits.contains {
+            traits.contains {
                 $0.tags.isSubset(of: tags) && ($0.excluded.isEmpty || !$0.excluded.isSubset(of: tags))
             }
         }
