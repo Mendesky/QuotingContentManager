@@ -275,12 +275,12 @@ public struct ServiceItem: Codable, Sendable {
     public static var ctp: Self {
         get {
             .init(
-                type: "CTP",
+                type: "Ctp",
                 name: "年度CTP申報",
                 alias: "CTP",
                 primary: true,
                 tags: [
-                    "ServiceItem/CTP"
+                    "ServiceItem/Ctp"
                 ],
                 workItems: [
                     .init(type: "ctp", content: "年度CTP申報"),
