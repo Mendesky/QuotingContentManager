@@ -18,6 +18,7 @@ public struct ServiceItem: Codable, Sendable {
     public let workItems: [WorkItem]
     public let scopeTerms: [ScopeTerm]
     public let additionalServiceNameFormat: AdditionalServiceNameFormat?
+    public let paymentItemNameFormat: PaymentItemNameFormat?
 
     public init(
         type: String,
@@ -29,7 +30,8 @@ public struct ServiceItem: Codable, Sendable {
         tags: [String] = [],
         workItems: [WorkItem] = [],
         scopeTerms: [ScopeTerm] = [],
-        additionalServiceNameFormat: AdditionalServiceNameFormat? = nil
+        additionalServiceNameFormat: AdditionalServiceNameFormat? = nil,
+        paymentItemNameFormat: PaymentItemNameFormat? = nil
     ) {
         self.type = type
         self.name = name
@@ -41,6 +43,7 @@ public struct ServiceItem: Codable, Sendable {
         self.workItems = workItems
         self.scopeTerms = scopeTerms
         self.additionalServiceNameFormat = additionalServiceNameFormat
+        self.paymentItemNameFormat = paymentItemNameFormat
     }
 
     public init(from decoder: Decoder) throws {
@@ -55,6 +58,7 @@ public struct ServiceItem: Codable, Sendable {
         self.workItems = try container.decodeIfPresent([WorkItem].self, forKey: .workItems) ?? []
         self.scopeTerms = try container.decodeIfPresent([ScopeTerm].self, forKey: .scopeTerms) ?? []
         self.additionalServiceNameFormat = try container.decodeIfPresent(AdditionalServiceNameFormat.self, forKey: .additionalServiceNameFormat)
+        self.paymentItemNameFormat = try container.decodeIfPresent(PaymentItemNameFormat.self, forKey: .paymentItemNameFormat)
     }
 
     public var effectiveScopeTerms: [ScopeTerm] {
@@ -80,6 +84,13 @@ public struct ServiceItem: Codable, Sendable {
         return format.template
             .replacingOccurrences(of: "{price}", with: Self.formatPrice(price))
             .replacingOccurrences(of: "{count}", with: count.map(String.init) ?? "")
+    }
+
+    /// 結合 `displayName(forTaxAccount:)` 與 `paymentItemNameFormat.template` 算出 paymentItem 顯示名稱。
+    /// `{name}` 由本 method 替換為 displayName；`%xxx%` placeholder 保留交由 frontend 展開。
+    /// 若 serviceItem 沒有設定 `paymentItemNameFormat`，回 nil（caller 端 fallback 為 displayName 即可）。
+    public func paymentItemName(forTaxAccount isTaxAccount: Bool) -> String? {
+        paymentItemNameFormat?.resolve(name: displayName(forTaxAccount: isTaxAccount))
     }
 
     private static func formatPrice(_ price: Decimal) -> String {
@@ -120,7 +131,10 @@ public struct ServiceItem: Codable, Sendable {
                     .init(type: "profitseekingEnterpriseIncomeTaxFiling", content: "營利事業所得稅結算申報作業"),
                     .init(type: "undistributedEarningsFiling", content: "未分配盈餘結算申報作業"),
                     .init(type: "withholdingStatementFiling", content: "各類給付扣繳(股利)憑單申報作業"),
-                ])
+                ],
+                paymentItemNameFormat: PaymentItemNameFormat(
+                    template: "{name} %AccountingStart%"
+                ))
         }
     }
 
@@ -136,7 +150,10 @@ public struct ServiceItem: Codable, Sendable {
                 ],
                 workItems: [
                     .init(type: "accountingReform", content: "會計帳務重整作業"),
-                ])
+                ],
+                paymentItemNameFormat: PaymentItemNameFormat(
+                    template: "{name}%ReformPeriod%"
+                ))
         }
     }
 
@@ -153,7 +170,10 @@ public struct ServiceItem: Codable, Sendable {
                 ],
                 workItems: [
                     .init(type: "financialComplianceAudit", content: "財務報表查核簽證"),
-                ])
+                ],
+                paymentItemNameFormat: PaymentItemNameFormat(
+                    template: "%FinancialComplianceAuditStartYear%{name}"
+                ))
         }
     }
 
@@ -179,7 +199,10 @@ public struct ServiceItem: Codable, Sendable {
                         name: "未分配盈餘查核簽證",
                         content: "主要係分配盈餘結算申報與查核。"
                     ),
-                ])
+                ],
+                paymentItemNameFormat: PaymentItemNameFormat(
+                    template: "%TaxComplianceAuditStartYear%{name}"
+                ))
         }
     }
 
@@ -287,7 +310,10 @@ public struct ServiceItem: Codable, Sendable {
                     .init(type: "companyRegistration", content: "國稅局營業登記"),
                     .init(type: "uniformInvoicePurchasing", content: "國稅局購票證申報"),
                     .init(type: "ctpOfCompanyRegistration", content: "經濟部CTP申報事宜"),
-                ])
+                ],
+                paymentItemNameFormat: PaymentItemNameFormat(
+                    template: "{name}%PaidInCapital|exact%%CompanyRegistrationRegion%(不含動資查核)%CompanyRegistrationShareholder%"
+                ))
         }
     }
 
