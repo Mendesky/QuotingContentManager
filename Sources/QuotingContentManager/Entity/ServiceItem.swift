@@ -5,6 +5,8 @@
 //  Created by Grady Zhuo on 2026/3/2.
 //
 
+import Foundation
+
 public struct ServiceItem: Codable, Sendable {
     public let type: String
     public let name: String
@@ -14,6 +16,9 @@ public struct ServiceItem: Codable, Sendable {
     public let term: String?
     public var tags: [String]
     public let workItems: [WorkItem]
+    public let scopeTerms: [ScopeTerm]
+    public let additionalServiceNameFormat: AdditionalServiceNameFormat?
+    public let paymentItemNameFormat: PaymentItemNameFormat?
 
     public init(
         type: String,
@@ -23,7 +28,10 @@ public struct ServiceItem: Codable, Sendable {
         primary: Bool,
         term: String? = nil,
         tags: [String] = [],
-        workItems: [WorkItem] = []
+        workItems: [WorkItem] = [],
+        scopeTerms: [ScopeTerm] = [],
+        additionalServiceNameFormat: AdditionalServiceNameFormat? = nil,
+        paymentItemNameFormat: PaymentItemNameFormat? = nil
     ) {
         self.type = type
         self.name = name
@@ -33,6 +41,9 @@ public struct ServiceItem: Codable, Sendable {
         self.term = term
         self.tags = tags
         self.workItems = workItems
+        self.scopeTerms = scopeTerms
+        self.additionalServiceNameFormat = additionalServiceNameFormat
+        self.paymentItemNameFormat = paymentItemNameFormat
     }
 
     public init(from decoder: Decoder) throws {
@@ -45,6 +56,15 @@ public struct ServiceItem: Codable, Sendable {
         self.term = try container.decodeIfPresent(String.self, forKey: .term)
         self.tags = try container.decodeIfPresent([String].self, forKey: .tags) ?? []
         self.workItems = try container.decodeIfPresent([WorkItem].self, forKey: .workItems) ?? []
+        self.scopeTerms = try container.decodeIfPresent([ScopeTerm].self, forKey: .scopeTerms) ?? []
+        self.additionalServiceNameFormat = try container.decodeIfPresent(AdditionalServiceNameFormat.self, forKey: .additionalServiceNameFormat)
+        self.paymentItemNameFormat = try container.decodeIfPresent(PaymentItemNameFormat.self, forKey: .paymentItemNameFormat)
+    }
+
+    public var effectiveScopeTerms: [ScopeTerm] {
+        if !scopeTerms.isEmpty { return scopeTerms }
+        if let term { return [.init(name: name, content: term)] }
+        return []
     }
 
     public func workItem(type: String) -> WorkItem? {
@@ -57,6 +77,27 @@ public struct ServiceItem: Codable, Sendable {
 
     public func displayName(forTaxAccount isTaxAccount: Bool) -> String {
         isTaxAccount ? (taxAccountName ?? name) : name
+    }
+
+    public func additionalServiceName(price: Decimal, count: Int?) -> String? {
+        guard let format = additionalServiceNameFormat else { return nil }
+        return format.template
+            .replacingOccurrences(of: "{price}", with: Self.formatPrice(price))
+            .replacingOccurrences(of: "{count}", with: count.map(String.init) ?? "")
+    }
+
+    /// 結合 `displayName(forTaxAccount:)` 與 `paymentItemNameFormat.template` 算出 paymentItem 顯示名稱。
+    /// `{name}` 由本 method 替換為 displayName；`%xxx%` placeholder 保留交由 frontend 展開。
+    /// 若 serviceItem 沒有設定 `paymentItemNameFormat`，回 nil（caller 端 fallback 為 displayName 即可）。
+    public func paymentItemName(forTaxAccount isTaxAccount: Bool) -> String? {
+        paymentItemNameFormat?.resolve(name: displayName(forTaxAccount: isTaxAccount))
+    }
+
+    private static func formatPrice(_ price: Decimal) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 0
+        return formatter.string(from: price as NSDecimalNumber) ?? "\(price)"
     }
 
 
@@ -90,7 +131,10 @@ public struct ServiceItem: Codable, Sendable {
                     .init(type: "profitseekingEnterpriseIncomeTaxFiling", content: "營利事業所得稅結算申報作業"),
                     .init(type: "undistributedEarningsFiling", content: "未分配盈餘結算申報作業"),
                     .init(type: "withholdingStatementFiling", content: "各類給付扣繳(股利)憑單申報作業"),
-                ])
+                ],
+                paymentItemNameFormat: PaymentItemNameFormat(
+                    template: "{name} %AccountingStart%"
+                ))
         }
     }
 
@@ -106,7 +150,10 @@ public struct ServiceItem: Codable, Sendable {
                 ],
                 workItems: [
                     .init(type: "accountingReform", content: "會計帳務重整作業"),
-                ])
+                ],
+                paymentItemNameFormat: PaymentItemNameFormat(
+                    template: "{name}%ReformPeriod%"
+                ))
         }
     }
 
@@ -123,7 +170,10 @@ public struct ServiceItem: Codable, Sendable {
                 ],
                 workItems: [
                     .init(type: "financialComplianceAudit", content: "財務報表查核簽證"),
-                ])
+                ],
+                paymentItemNameFormat: PaymentItemNameFormat(
+                    template: "%FinancialComplianceAuditStartYear%{name}"
+                ))
         }
     }
 
@@ -134,13 +184,25 @@ public struct ServiceItem: Codable, Sendable {
                 name: "營利事業所得稅查核簽證",
                 alias: "稅簽",
                 primary: true,
-                term: "營利事業所得稅查核簽證主要係包括執行營利事業所得稅結算申報程序及依照「所得稅法」規定進行會計師查核簽證作業及國稅局查核事項協助。\n未分配盈餘主要係分配盈餘結算申報與查核。",
                 tags: [
                     "ServiceItem/TaxComplianceAudit",
                 ],
                 workItems: [
                     .init(type: "taxComplianceAudit", content: "營利事業所得稅查核簽證與未分配盈餘查核"),
-                ])
+                ],
+                scopeTerms: [
+                    .init(
+                        name: "營利事業所得稅查核簽證",
+                        content: "營利事業所得稅查核簽證主要係包括執行營利事業所得稅結算申報程序及依照「所得稅法」規定進行會計師查核簽證作業及國稅局查核事項協助。"
+                    ),
+                    .init(
+                        name: "未分配盈餘查核簽證",
+                        content: "主要係分配盈餘結算申報與查核。"
+                    ),
+                ],
+                paymentItemNameFormat: PaymentItemNameFormat(
+                    template: "%TaxComplianceAuditStartYear%{name}"
+                ))
         }
     }
 
@@ -248,7 +310,10 @@ public struct ServiceItem: Codable, Sendable {
                     .init(type: "companyRegistration", content: "國稅局營業登記"),
                     .init(type: "uniformInvoicePurchasing", content: "國稅局購票證申報"),
                     .init(type: "ctpOfCompanyRegistration", content: "經濟部CTP申報事宜"),
-                ])
+                ],
+                paymentItemNameFormat: PaymentItemNameFormat(
+                    template: "{name}%PaidInCapital|exact%%CompanyRegistrationRegion%(不含動資查核)%CompanyRegistrationShareholder%"
+                ))
         }
     }
 
@@ -256,16 +321,20 @@ public struct ServiceItem: Codable, Sendable {
     public static var ctp: Self {
         get {
             .init(
-                type: "CTP",
+                type: "Ctp",
                 name: "年度CTP申報",
                 alias: "CTP",
                 primary: true,
                 tags: [
-                    "ServiceItem/CTP"
+                    "ServiceItem/Ctp"
                 ],
                 workItems: [
                     .init(type: "ctp", content: "年度CTP申報"),
-                ])
+                ],
+                additionalServiceNameFormat: AdditionalServiceNameFormat(
+                    template: "代辦年度CTP申報(每年3月；加收 {price} 元/家)",
+                    requiresCount: false
+                ))
         }
     }
 
@@ -281,7 +350,11 @@ public struct ServiceItem: Codable, Sendable {
                 ],
                 workItems: [
                     .init(type: "assistanceAnnualSupplementaryPremiumDeductionDetailsReporting", content: "年度補充保費扣費明細彙報"),
-                ])
+                ],
+                additionalServiceNameFormat: AdditionalServiceNameFormat(
+                    template: "代辦年度補充保費扣費明細彙報(每年1月；加收 {price} 元/家)",
+                    requiresCount: false
+                ))
         }
     }
 
@@ -311,7 +384,11 @@ public struct ServiceItem: Codable, Sendable {
                 ],
                 workItems: [
                     .init(type: "assistanceWithCompanyCertificatationApplication", content: "代辦工商憑證申請"),
-                ])
+                ],
+                additionalServiceNameFormat: AdditionalServiceNameFormat(
+                    template: "代辦工商憑證申請(加收 {price} 元)",
+                    requiresCount: false
+                ))
         }
     }
 
@@ -327,7 +404,11 @@ public struct ServiceItem: Codable, Sendable {
                 ],
                 workItems: [
                     .init(type: "assistanceWithCompanySeal", content: "代刻公司章(大)"),
-                ])
+                ],
+                additionalServiceNameFormat: AdditionalServiceNameFormat(
+                    template: "代刻公司章(大)各 {count} 枚(加收 {price} 元)",
+                    requiresCount: true
+                ))
         }
     }
 
@@ -343,7 +424,11 @@ public struct ServiceItem: Codable, Sendable {
                 ],
                 workItems: [
                     .init(type: "assistanceWithChairmanSeal", content: "代刻公司章(小)"),
-                ])
+                ],
+                additionalServiceNameFormat: AdditionalServiceNameFormat(
+                    template: "代刻公司章(小)各 {count} 枚(加收 {price} 元)",
+                    requiresCount: true
+                ))
         }
     }
 
@@ -359,7 +444,11 @@ public struct ServiceItem: Codable, Sendable {
                 ],
                 workItems: [
                     .init(type: "assistanceWithCompanyConvenienceSeal", content: "代刻公司便章(大)"),
-                ])
+                ],
+                additionalServiceNameFormat: AdditionalServiceNameFormat(
+                    template: "代刻公司便章(大)各 {count} 枚(加收 {price} 元)",
+                    requiresCount: true
+                ))
         }
     }
 
@@ -375,7 +464,11 @@ public struct ServiceItem: Codable, Sendable {
                 ],
                 workItems: [
                     .init(type: "assistanceWithChairmanConvenienceSeal", content: "代刻公司便章(小)"),
-                ])
+                ],
+                additionalServiceNameFormat: AdditionalServiceNameFormat(
+                    template: "代刻公司便章(小)各 {count} 枚(加收 {price} 元)",
+                    requiresCount: true
+                ))
         }
     }
 
@@ -391,7 +484,11 @@ public struct ServiceItem: Codable, Sendable {
                 ],
                 workItems: [
                     .init(type: "assistanceWithInvoiceSeal", content: "代刻發票章"),
-                ])
+                ],
+                additionalServiceNameFormat: AdditionalServiceNameFormat(
+                    template: "代刻發票章 {count} 枚(加收 {price} 元)",
+                    requiresCount: true
+                ))
         }
     }
 
@@ -407,7 +504,11 @@ public struct ServiceItem: Codable, Sendable {
                 ],
                 workItems: [
                     .init(type: "assistanceWithLaborAndHealthInsuranceInsuredUnitSetting", content: "代辦勞健保投保單位設立"),
-                ])
+                ],
+                additionalServiceNameFormat: AdditionalServiceNameFormat(
+                    template: "代辦勞健保投保單位設立(加收 {price} 元)",
+                    requiresCount: false
+                ))
         }
     }
 
