@@ -411,18 +411,18 @@ public struct ServiceItem: Codable, Sendable {
 //        }
 //    }
 
-    public static var assistanceWithCompanyCertificatationApplication: Self {
+    public static var assistanceWithCompanyCertificationApplication: Self {
         get {
             .init(
-                type: "AssistanceWithCompanyCertificatationApplication",
+                type: "AssistanceWithCompanyCertificationApplication",
                 name: "代辦工商憑證申請",
                 alias: "工商憑證",
                 primary: true,
                 tags: [
-                    "ServiceItem/AssistanceWithCompanyCertificatationApplication"
+                    "ServiceItem/AssistanceWithCompanyCertificationApplication"
                 ],
                 workItems: [
-                    .init(type: "assistanceWithCompanyCertificatationApplication", content: "代辦工商憑證申請"),
+                    .init(type: "assistanceWithCompanyCertificationApplication", content: "代辦工商憑證申請"),
                 ],
                 additionalServiceNameFormat: AdditionalServiceNameFormat(
                     template: "代辦工商憑證申請(加收 {price} 元)",

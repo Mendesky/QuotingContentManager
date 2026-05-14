@@ -8,7 +8,7 @@ struct AdditionalServiceNameFormatTests {
     private static let assistanceItems: [ServiceItem] = [
         .ctp,
         .assistanceAnnualSupplementaryPremiumDeductionDetailsReporting,
-        .assistanceWithCompanyCertificatationApplication,
+        .assistanceWithCompanyCertificationApplication,
         .assistanceWithCompanySeal,
         .assistanceWithChairmanSeal,
         .assistanceWithCompanyConvenienceSeal,
@@ -83,7 +83,7 @@ struct AdditionalServiceNameFormatTests {
         let cases: [(item: ServiceItem, phrase: String)] = [
             (.ctp, "代辦年度CTP申報"),
             (.assistanceAnnualSupplementaryPremiumDeductionDetailsReporting, "代辦年度補充保費扣費明細彙報"),
-            (.assistanceWithCompanyCertificatationApplication, "代辦工商憑證申請"),
+            (.assistanceWithCompanyCertificationApplication, "代辦工商憑證申請"),
             (.assistanceWithCompanySeal, "代刻公司章(大)"),
             (.assistanceWithChairmanSeal, "代刻公司章(小)"),
             (.assistanceWithCompanyConvenienceSeal, "代刻公司便章(大)"),
