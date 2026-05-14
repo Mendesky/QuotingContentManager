@@ -18,7 +18,7 @@ public struct QuotingContentManager: Sendable {
         .ctp,
         .assistanceAnnualSupplementaryPremiumDeductionDetailsReporting,
 //        .assistanceRegistrationByJWServiceItem,
-        .assistanceWithCompanyCertificatationApplication,
+        .assistanceWithCompanyCertificationApplication,
         .assistanceWithCompanySeal,
         .assistanceWithChairmanSeal,
         .assistanceWithCompanyConvenienceSeal,
