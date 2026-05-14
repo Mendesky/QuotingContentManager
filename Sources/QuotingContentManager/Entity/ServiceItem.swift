@@ -188,7 +188,46 @@ public struct ServiceItem: Codable, Sendable {
                     "ServiceItem/TaxComplianceAudit",
                 ],
                 workItems: [
-                    .init(type: "taxComplianceAudit", content: "營利事業所得稅查核簽證與未分配盈餘查核"),
+                    .init(type: "taxComplianceAudit", content: "營利事業所得稅查核簽證"),
+                ],
+                scopeTerms: [
+                    .init(
+                        name: "營利事業所得稅查核簽證",
+                        content: "營利事業所得稅查核簽證主要係包括執行營利事業所得稅結算申報程序及依照「所得稅法」規定進行會計師查核簽證作業及國稅局查核事項協助。"
+                    ),
+                ],
+                paymentItemNameFormat: PaymentItemNameFormat(
+                    template: "%TaxComplianceAuditStartYear%{name}"
+                ))
+        }
+    }
+
+    /// 「營利事業所得稅查核簽證 + 未分配盈餘查核」變體。
+    /// 與既有 `taxComplianceAudit` 在 caller 端視為兩個獨立 ServiceItemType：
+    /// - 純 `taxComplianceAudit`：行號（獨資合夥）等無法人盈餘可分配的情境
+    /// - 本變體：一般公司型態
+    ///
+    /// 設計細節：
+    /// - **`tags` 沿用 `ServiceItem/TaxComplianceAudit`**：下游 contractNoteManager / paymentItemManager 既有
+    ///   tag-based matching（uniqueCode 5 / 6 / 12 / 13 / 2 等 entry 都以 `ServiceItem/TaxComplianceAudit` 觸發）
+    ///   不需動，本變體會 inherit 相同 ContractNote / PaymentItem 補充說明（業務拍板：兩 type 補充說明永遠一致）。
+    /// - **`workItems` 拆兩個**：`taxComplianceAudit` + `undistributedEarningsAudit`，與既有「純」變體的單一
+    ///   workItem 結構不同（這是兩 type 在語意上的真正差異點）。
+    /// - **`paymentItemNameFormat.template` 共用** `%TaxComplianceAuditStartYear%{name}`：年份 placeholder 對兩
+    ///   變體都適用；{name} 自然 resolve 為本 ServiceItem 的 `name`（即「...與未分配盈餘查核」全名）。
+    public static var taxComplianceAuditAndUndistributedEarningsAudit: Self {
+        get {
+            .init(
+                type: "TaxComplianceAuditAndUndistributedEarningsAudit",
+                name: "營利事業所得稅查核簽證與未分配盈餘查核",
+                alias: "稅簽",
+                primary: true,
+                tags: [
+                    "ServiceItem/TaxComplianceAudit",
+                ],
+                workItems: [
+                    .init(type: "taxComplianceAudit", content: "營利事業所得稅查核簽證"),
+                    .init(type: "undistributedEarningsAudit", content: "未分配盈餘查核"),
                 ],
                 scopeTerms: [
                     .init(
