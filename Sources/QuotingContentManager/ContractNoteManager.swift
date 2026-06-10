@@ -46,7 +46,7 @@ public struct ContractNoteManager: Sendable {
             ]),
         ], weight: 65, content: """
         營業收入總額及憑證量若有巨額變動或變更申報方式，將另與　貴公司討論報價金額。
-        %AccountingWorkName%處理作業費用一年以十四個月計算，並請於單月份之末日前支付前兩個月之公費(舉例而言，3月31日前應支付1月份與2月份之公費，而當年度11月與12月之費用應於次年1月31日前支付)，並應支付至本事務所指定之銀行帳戶。
+        %AccountingWorkName%處理作業費用%AccountingPeriod%，並%AccountingBilling%，並應支付至本事務所指定之銀行帳戶。
         承辦委任事項所發生之代墊費用，包括機票、簽證、住宿等，另行檢具相關憑證向 貴公司請款。
         """),
         .init(uniqueCode: "9", mutex: .tags(["ServiceItemConfig/is_providing_electronic_file:false"]), traits: [
@@ -67,7 +67,7 @@ public struct ContractNoteManager: Sendable {
         B.國外轉帳10 筆；每加⼀筆多100 元。
         C.⼀次薪資轉帳。
         *如出納事務處理作業有重複處理，將額外收取處理費用2,000元/次。
-        %CashierPeriod%，並%CashierBilling%
+        公費費用%CashierPeriod%，並%CashierBilling%
         """),
         .init(uniqueCode: "11", traits: [
             .init(tags: [
@@ -75,7 +75,7 @@ public struct ContractNoteManager: Sendable {
             ]),
         ], weight: 35, content: """
         薪資人力支援處理作業500元/人/月；基本收費3,000/月。
-        %PayrollSupportPeriod%，並%PayrollSupportBilling%
+        公費費用%PayrollSupportPeriod%，並%PayrollSupportBilling%
         """),
         .init(uniqueCode: "12", mutex: .codes(["13"]), traits: [
             .init(tags: [
