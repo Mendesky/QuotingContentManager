@@ -14,6 +14,8 @@ public struct QuotingContentManager: Sendable {
         .payrollSupportOperation,
 //        .settlementReview,
         .customized,
+        // 此清單僅供依 type 查表 / 取 workItems(mapping、discovery),不會用來算付款名稱,
+        // 故工商登記用預設版即可;帶資本額的付款名稱請走 companyRegistration(for:)。
         .companyRegistration,
         .ctp,
         .assistanceAnnualSupplementaryPremiumDeductionDetailsReporting,
@@ -36,6 +38,12 @@ public struct QuotingContentManager: Sendable {
 
     public func getServiceItem(type: String) -> ServiceItem? {
         serviceItems.first { $0.type == type }
+    }
+
+    /// 依公司型態回傳工商登記 ServiceItem(資本額段依型態顯示/省略)。
+    /// 呼叫端在計算工商登記 paymentItem 名稱時應走此路徑。
+    public func companyRegistration(for organizationType: OrganizationType) -> ServiceItem {
+        .companyRegistration(for: organizationType)
     }
 
     public func getWorkItem(serviceType: String, workItemType: String) -> WorkItem? {
