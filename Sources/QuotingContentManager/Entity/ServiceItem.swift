@@ -17,7 +17,10 @@ public struct ServiceItem: Codable, Sendable {
     public var tags: [String]
     public let workItems: [WorkItem]
     public let scopeTerms: [ScopeTerm]
-    public let additionalServiceNameFormat: AdditionalServiceNameFormat?
+    /// 附加服務名稱顯示策略。`.flatName`（純名稱，如自用住宅或非附加服務）/ `.embedsPrice(format)`
+    /// （名稱內嵌金額，如 CTP）。取代舊的 optional `additionalServiceNameFormat`——把「format 缺」的雙義
+    /// 拆成顯式宣告，價格型一定帶 format（型別強制）。詳見 `AdditionalServiceNameStrategy`。
+    public let additionalServiceNameStrategy: AdditionalServiceNameStrategy
     public let paymentItemNameFormat: PaymentItemNameFormat?
 
     public init(
@@ -30,7 +33,7 @@ public struct ServiceItem: Codable, Sendable {
         tags: [String] = [],
         workItems: [WorkItem] = [],
         scopeTerms: [ScopeTerm] = [],
-        additionalServiceNameFormat: AdditionalServiceNameFormat? = nil,
+        additionalServiceNameStrategy: AdditionalServiceNameStrategy = .flatName,
         paymentItemNameFormat: PaymentItemNameFormat? = nil
     ) {
         self.type = type
@@ -42,7 +45,7 @@ public struct ServiceItem: Codable, Sendable {
         self.tags = tags
         self.workItems = workItems
         self.scopeTerms = scopeTerms
-        self.additionalServiceNameFormat = additionalServiceNameFormat
+        self.additionalServiceNameStrategy = additionalServiceNameStrategy
         self.paymentItemNameFormat = paymentItemNameFormat
     }
 
@@ -57,7 +60,7 @@ public struct ServiceItem: Codable, Sendable {
         self.tags = try container.decodeIfPresent([String].self, forKey: .tags) ?? []
         self.workItems = try container.decodeIfPresent([WorkItem].self, forKey: .workItems) ?? []
         self.scopeTerms = try container.decodeIfPresent([ScopeTerm].self, forKey: .scopeTerms) ?? []
-        self.additionalServiceNameFormat = try container.decodeIfPresent(AdditionalServiceNameFormat.self, forKey: .additionalServiceNameFormat)
+        self.additionalServiceNameStrategy = try container.decodeIfPresent(AdditionalServiceNameStrategy.self, forKey: .additionalServiceNameStrategy) ?? .flatName
         self.paymentItemNameFormat = try container.decodeIfPresent(PaymentItemNameFormat.self, forKey: .paymentItemNameFormat)
     }
 
@@ -79,25 +82,11 @@ public struct ServiceItem: Codable, Sendable {
         isTaxAccount ? (taxAccountName ?? name) : name
     }
 
-    public func additionalServiceName(price: Decimal, count: Int?) -> String? {
-        guard let format = additionalServiceNameFormat else { return nil }
-        return format.template
-            .replacingOccurrences(of: "{price}", with: Self.formatPrice(price))
-            .replacingOccurrences(of: "{count}", with: count.map(String.init) ?? "")
-    }
-
     /// 結合 `displayName(forTaxAccount:)` 與 `paymentItemNameFormat.template` 算出 paymentItem 顯示名稱。
     /// `{name}` 由本 method 替換為 displayName；`%xxx%` placeholder 保留交由 frontend 展開。
     /// 若 serviceItem 沒有設定 `paymentItemNameFormat`，回 nil（caller 端 fallback 為 displayName 即可）。
     public func paymentItemName(forTaxAccount isTaxAccount: Bool) -> String? {
         paymentItemNameFormat?.resolve(name: displayName(forTaxAccount: isTaxAccount))
-    }
-
-    private static func formatPrice(_ price: Decimal) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        return formatter.string(from: price as NSDecimalNumber) ?? "\(price)"
     }
 
 
@@ -392,10 +381,10 @@ public struct ServiceItem: Codable, Sendable {
                 workItems: [
                     .init(type: "ctp", content: "年度CTP申報"),
                 ],
-                additionalServiceNameFormat: AdditionalServiceNameFormat(
+                additionalServiceNameStrategy: .embedsPrice(AdditionalServiceNameFormat(
                     template: "代辦年度CTP申報(每年3月；加收 {price} 元/家)",
                     requiresCount: false
-                ))
+                )))
         }
     }
 
@@ -412,10 +401,10 @@ public struct ServiceItem: Codable, Sendable {
                 workItems: [
                     .init(type: "assistanceAnnualSupplementaryPremiumDeductionDetailsReporting", content: "年度補充保費扣費明細彙報"),
                 ],
-                additionalServiceNameFormat: AdditionalServiceNameFormat(
+                additionalServiceNameStrategy: .embedsPrice(AdditionalServiceNameFormat(
                     template: "代辦年度補充保費扣費明細彙報(每年1月；加收 {price} 元/家)",
                     requiresCount: false
-                ))
+                )))
         }
     }
 
@@ -446,10 +435,10 @@ public struct ServiceItem: Codable, Sendable {
                 workItems: [
                     .init(type: "assistanceWithCompanyCertificationApplication", content: "代辦工商憑證申請"),
                 ],
-                additionalServiceNameFormat: AdditionalServiceNameFormat(
+                additionalServiceNameStrategy: .embedsPrice(AdditionalServiceNameFormat(
                     template: "代辦工商憑證申請(加收 {price} 元)",
                     requiresCount: false
-                ))
+                )))
         }
     }
 
@@ -466,10 +455,10 @@ public struct ServiceItem: Codable, Sendable {
                 workItems: [
                     .init(type: "assistanceWithCompanySeal", content: "代刻公司章(大)"),
                 ],
-                additionalServiceNameFormat: AdditionalServiceNameFormat(
+                additionalServiceNameStrategy: .embedsPrice(AdditionalServiceNameFormat(
                     template: "代刻公司章(大)各 {count} 枚(加收 {price} 元)",
                     requiresCount: true
-                ))
+                )))
         }
     }
 
@@ -486,10 +475,10 @@ public struct ServiceItem: Codable, Sendable {
                 workItems: [
                     .init(type: "assistanceWithChairmanSeal", content: "代刻公司章(小)"),
                 ],
-                additionalServiceNameFormat: AdditionalServiceNameFormat(
+                additionalServiceNameStrategy: .embedsPrice(AdditionalServiceNameFormat(
                     template: "代刻公司章(小)各 {count} 枚(加收 {price} 元)",
                     requiresCount: true
-                ))
+                )))
         }
     }
 
@@ -506,10 +495,10 @@ public struct ServiceItem: Codable, Sendable {
                 workItems: [
                     .init(type: "assistanceWithCompanyConvenienceSeal", content: "代刻公司便章(大)"),
                 ],
-                additionalServiceNameFormat: AdditionalServiceNameFormat(
+                additionalServiceNameStrategy: .embedsPrice(AdditionalServiceNameFormat(
                     template: "代刻公司便章(大)各 {count} 枚(加收 {price} 元)",
                     requiresCount: true
-                ))
+                )))
         }
     }
 
@@ -526,10 +515,10 @@ public struct ServiceItem: Codable, Sendable {
                 workItems: [
                     .init(type: "assistanceWithChairmanConvenienceSeal", content: "代刻公司便章(小)"),
                 ],
-                additionalServiceNameFormat: AdditionalServiceNameFormat(
+                additionalServiceNameStrategy: .embedsPrice(AdditionalServiceNameFormat(
                     template: "代刻公司便章(小)各 {count} 枚(加收 {price} 元)",
                     requiresCount: true
-                ))
+                )))
         }
     }
 
@@ -546,10 +535,10 @@ public struct ServiceItem: Codable, Sendable {
                 workItems: [
                     .init(type: "assistanceWithInvoiceSeal", content: "代刻發票章"),
                 ],
-                additionalServiceNameFormat: AdditionalServiceNameFormat(
+                additionalServiceNameStrategy: .embedsPrice(AdditionalServiceNameFormat(
                     template: "代刻發票章 {count} 枚(加收 {price} 元)",
                     requiresCount: true
-                ))
+                )))
         }
     }
 
@@ -566,10 +555,10 @@ public struct ServiceItem: Codable, Sendable {
                 workItems: [
                     .init(type: "assistanceWithLaborAndHealthInsuranceInsuredUnitSetting", content: "代辦勞健保投保單位設立"),
                 ],
-                additionalServiceNameFormat: AdditionalServiceNameFormat(
+                additionalServiceNameStrategy: .embedsPrice(AdditionalServiceNameFormat(
                     template: "代辦勞健保投保單位設立(加收 {price} 元)",
                     requiresCount: false
-                ))
+                )))
         }
     }
 
