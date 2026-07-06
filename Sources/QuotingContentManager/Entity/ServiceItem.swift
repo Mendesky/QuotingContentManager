@@ -122,7 +122,7 @@ public struct ServiceItem: Codable, Sendable {
                     .init(type: "withholdingStatementFiling", content: "各類給付扣繳(股利)憑單申報作業"),
                 ],
                 paymentItemNameFormat: PaymentItemNameFormat(
-                    template: "{name} %AccountingStart%"
+                    template: "{name} \(TemplateVariableConcept.accountingStart.placeholder())"
                 ))
         }
     }
@@ -141,7 +141,7 @@ public struct ServiceItem: Codable, Sendable {
                     .init(type: "accountingReform", content: "會計帳務重整作業"),
                 ],
                 paymentItemNameFormat: PaymentItemNameFormat(
-                    template: "{name}%ReformPeriod%"
+                    template: "{name}\(TemplateVariableConcept.reformPeriod.placeholder())"
                 ))
         }
     }
@@ -161,7 +161,7 @@ public struct ServiceItem: Codable, Sendable {
                     .init(type: "financialComplianceAudit", content: "財務報表查核簽證"),
                 ],
                 paymentItemNameFormat: PaymentItemNameFormat(
-                    template: "%FinancialComplianceAuditStartYear%{name}"
+                    template: "\(TemplateVariableConcept.financialComplianceAuditStartYear.placeholder()){name}"
                 ))
         }
     }
@@ -186,7 +186,7 @@ public struct ServiceItem: Codable, Sendable {
                     ),
                 ],
                 paymentItemNameFormat: PaymentItemNameFormat(
-                    template: "%TaxComplianceAuditStartYear%{name}"
+                    template: "\(TemplateVariableConcept.taxComplianceAuditStartYear.placeholder()){name}"
                 ))
         }
     }
@@ -202,7 +202,7 @@ public struct ServiceItem: Codable, Sendable {
     ///   不需動，本變體會 inherit 相同 ContractNote / PaymentItem 補充說明（業務拍板：兩 type 補充說明永遠一致）。
     /// - **`workItems` 拆兩個**：`taxComplianceAudit` + `undistributedEarningsAudit`，與既有「純」變體的單一
     ///   workItem 結構不同（這是兩 type 在語意上的真正差異點）。
-    /// - **`paymentItemNameFormat.template` 共用** `%TaxComplianceAuditStartYear%{name}`：年份 placeholder 對兩
+    /// - **`paymentItemNameFormat.template` 共用** `\(TemplateVariableConcept.taxComplianceAuditStartYear.placeholder()){name}`：年份 placeholder 對兩
     ///   變體都適用；{name} 自然 resolve 為本 ServiceItem 的 `name`（即「...與未分配盈餘查核」全名）。
     public static var taxComplianceAuditAndUndistributedEarningsAudit: Self {
         get {
@@ -229,7 +229,7 @@ public struct ServiceItem: Codable, Sendable {
                     ),
                 ],
                 paymentItemNameFormat: PaymentItemNameFormat(
-                    template: "%TaxComplianceAuditStartYear%{name}"
+                    template: "\(TemplateVariableConcept.taxComplianceAuditStartYear.placeholder()){name}"
                 ))
         }
     }
@@ -321,7 +321,7 @@ public struct ServiceItem: Codable, Sendable {
     /// 工商登記服務項目(目錄/預設版)。
     ///
     /// `companyRegistration(for:)` 的 `paymentItemNameFormat` 會依組織型態產出不同資本額狀態:
-    /// 股份有限公司 → `%PaidInCapital|exact%`(實收)、有限公司/獨資合夥 → `%RegisteredCapital|exact%`(登記)、
+    /// 股份有限公司 → `\(TemplateVariableConcept.paidInCapital.placeholder(variant: "exact"))`(實收)、有限公司/獨資合夥 → `\(TemplateVariableConcept.registeredCapital.placeholder(variant: "exact"))`(登記)、
     /// 非營利/執行業務所得/境外公司 → 不顯示資本額。
     ///
     /// 本預設版採「股份有限公司」情境(實收資本額),因該情境較常見。
@@ -338,7 +338,7 @@ public struct ServiceItem: Codable, Sendable {
     public static func companyRegistration(for organizationType: OrganizationType) -> Self {
         let capitalSegment = organizationType.capitalPlaceholderKey.map { "%\($0)|exact%" } ?? ""
         let format = PaymentItemNameFormat(
-            template: "{name}\(capitalSegment)%CompanyRegistrationRegion%(不含動資查核)%CompanyRegistrationShareholder%"
+            template: "{name}\(capitalSegment)\(TemplateVariableConcept.companyRegistrationRegion.placeholder())(不含動資查核)\(TemplateVariableConcept.companyRegistrationShareholder.placeholder())"
         )
         return companyRegistration(paymentItemNameFormat: format)
     }
