@@ -18,7 +18,7 @@ public struct ContractNoteManager: Sendable {
         如股東超過5人，第6位起每位加收新台幣500元之防制洗錢查核費。
         """),
         .init(uniqueCode: "4", traits: ["ServiceItem/FinancialComplianceAudit"], weight: 75, content: """
-        %FinancialComplianceAuditGroundName%若有巨額變動，將另與　貴公司討論報價金額。
+        \(TemplateVariableConcept.financialComplianceAuditGroundName.placeholder())若有巨額變動，將另與　貴公司討論報價金額。
         簽證公費請於當年度末日前支付半數，另外半數請於次年度五月末日前支付。
         """),
         .init(uniqueCode: "5", traits: [
@@ -46,7 +46,7 @@ public struct ContractNoteManager: Sendable {
             ]),
         ], weight: 65, content: """
         營業收入總額及憑證量若有巨額變動或變更申報方式，將另與　貴公司討論報價金額。
-        %AccountingWorkName%處理作業費用%AccountingPeriod%，並%AccountingBilling%，並應支付至本事務所指定之銀行帳戶。
+        \(TemplateVariableConcept.accountingWorkName.placeholder())處理作業費用\(TemplateVariableConcept.accountingPeriod.placeholder())，並\(TemplateVariableConcept.accountingBilling.placeholder())，並應支付至本事務所指定之銀行帳戶。
         承辦委任事項所發生之代墊費用，包括機票、簽證、住宿等，另行檢具相關憑證向 貴公司請款。
         """),
         .init(uniqueCode: "9", mutex: .tags(["ServiceItemConfig/is_providing_electronic_file:false"]), traits: [
@@ -67,7 +67,7 @@ public struct ContractNoteManager: Sendable {
         B.國外轉帳10 筆；每加⼀筆多100 元。
         C.⼀次薪資轉帳。
         *如出納事務處理作業有重複處理，將額外收取處理費用2,000元/次。
-        公費費用%CashierPeriod%，並%CashierBilling%
+        公費費用\(TemplateVariableConcept.cashierPeriod.placeholder())，並\(TemplateVariableConcept.cashierBilling.placeholder())
         """),
         .init(uniqueCode: "11", traits: [
             .init(tags: [
@@ -75,7 +75,7 @@ public struct ContractNoteManager: Sendable {
             ]),
         ], weight: 35, content: """
         薪資人力支援處理作業500元/人/月；基本收費3,000/月。
-        公費費用%PayrollSupportPeriod%，並%PayrollSupportBilling%
+        公費費用\(TemplateVariableConcept.payrollSupportPeriod.placeholder())，並\(TemplateVariableConcept.payrollSupportBilling.placeholder())
         """),
         .init(uniqueCode: "12", mutex: .codes(["13"]), traits: [
             .init(tags: [

@@ -131,34 +131,34 @@ extension QuotingContentManager {
 extension QuotingContentManager {
     public var contractHeader: Copywriting {
         get {
-            .init(title: "承 貴公司委任本事務所辦理有關%ServiceItemNames%之專業服務，至深感荷。謹將服務內容及酬金等分別說明如后，敬請卓察賜覆為禱。", content: "感謝 貴公司對本事務所的支持與愛護，本事務所本著積極服務顧客的熱忱，以及專業智慧的多元服務，特將本事務所受託辦理有關%ServiceItemNames%之專業服務的內容概述如後，期盼此項合作能協助 貴公司提升%AccountingWorkName%品質，俾能符合相關稅務法令和企業會計準則之規定。茲將委任之目的、服務範圍、貴公司協助事項、酬金、權利義務事項及同意函列示如下：")
+            .init(title: "承 貴公司委任本事務所辦理有關\(TemplateVariableConcept.serviceItemNames.placeholder())之專業服務，至深感荷。謹將服務內容及酬金等分別說明如后，敬請卓察賜覆為禱。", content: "感謝 貴公司對本事務所的支持與愛護，本事務所本著積極服務顧客的熱忱，以及專業智慧的多元服務，特將本事務所受託辦理有關\(TemplateVariableConcept.serviceItemNames.placeholder())之專業服務的內容概述如後，期盼此項合作能協助 貴公司提升\(TemplateVariableConcept.accountingWorkName.placeholder())品質，俾能符合相關稅務法令和企業會計準則之規定。茲將委任之目的、服務範圍、貴公司協助事項、酬金、權利義務事項及同意函列示如下：")
         }
     }
     
     public var letter: Copywriting {
         get {
-            .init(title: "本公司同意委託 貴事務所對本公司執行有關%ServiceItemNames%之專業服務及公費報價，請查照。", content: "茲將附上%QuotingCaseName%有關%ServiceItemNames%之專業服務公費報價單。\n我們希望以最專業多元的服務與 貴公司長久配合，公費內容若經確認，煩請將最後一頁同意函簽章並回覆至敝事務所，謝謝您的合作。")
+            .init(title: "本公司同意委託 貴事務所對本公司執行有關\(TemplateVariableConcept.serviceItemNames.placeholder())之專業服務及公費報價，請查照。", content: "茲將附上\(TemplateVariableConcept.quotingCaseName.placeholder())有關\(TemplateVariableConcept.serviceItemNames.placeholder())之專業服務公費報價單。\n我們希望以最專業多元的服務與 貴公司長久配合，公費內容若經確認，煩請將最後一頁同意函簽章並回覆至敝事務所，謝謝您的合作。")
         }
     }
     
     
     public var purpose: Copywriting {
         get {
-            .init(title: "目的", content: "貴公司委託本事務所辦理有關%ServiceItemNames%之專業服務，以協助 貴公司提升整體%AccountingWorkName%品質，並符合相關稅務法令和企業會計準則等之規定。")
+            .init(title: "目的", content: "貴公司委託本事務所辦理有關\(TemplateVariableConcept.serviceItemNames.placeholder())之專業服務，以協助 貴公司提升整體\(TemplateVariableConcept.accountingWorkName.placeholder())品質，並符合相關稅務法令和企業會計準則等之規定。")
         }
     }
 
     public var serviceScope: Copywriting {
         get {
-            .init(title: "服務範圍及內容", content: "本項專案作業之服務範圍將根據相關稅務法令、企業會計準則與會計師查核簽證準則之規定，由 貴公司委託本事務所辦理有關%ServiceItemNames%之專業服務，俾能符合相關法令規定與提升整體%AccountingWorkName%品質。有關具體服務事項如下：")
+            .init(title: "服務範圍及內容", content: "本項專案作業之服務範圍將根據相關稅務法令、企業會計準則與會計師查核簽證準則之規定，由 貴公司委託本事務所辦理有關\(TemplateVariableConcept.serviceItemNames.placeholder())之專業服務，俾能符合相關法令規定與提升整體\(TemplateVariableConcept.accountingWorkName.placeholder())品質。有關具體服務事項如下：")
         }
     }
 
     public var rightsAndObligations: ProvisionsSection {
         get {
             .init(title: "權利義務事項", provisions: [
-                "本事務所提供%AccountingWorkName%處理作業服務將依據　貴公司所提供之資料及文件，利用會計專業知識蒐集、分類及彙總資訊，進而提供%AccountingWorkName%處理作業服務項目，本事務所對資料並無查核或核閱義務，本事務所僅係依 貴公司所提供之資訊完成%AccountingWorkName%處理作業服務。",
-                "本事務所所提供%AccountingWorkName%處理作業服務，僅係依 貴公司提供之文件與資料分類及彙總，並僅限協助　貴公司為%AccountingWorkName%處理作業服務使用。除本事務所分類及彙總有過失之情形外，如本事務所於本報價單意旨提供%AccountingWorkName%處理作業服務事項，而遭致第三人向本事務所為法律上之主張而致生損害時，貴公司同意負責補償該損害。另未經本事務所書面同意，本事務所所提供之服務不得提供他人使用；且若有此種情形致他人權益受損，本事務所不負任何責任。",
+                "本事務所提供\(TemplateVariableConcept.accountingWorkName.placeholder())處理作業服務將依據　貴公司所提供之資料及文件，利用會計專業知識蒐集、分類及彙總資訊，進而提供\(TemplateVariableConcept.accountingWorkName.placeholder())處理作業服務項目，本事務所對資料並無查核或核閱義務，本事務所僅係依 貴公司所提供之資訊完成\(TemplateVariableConcept.accountingWorkName.placeholder())處理作業服務。",
+                "本事務所所提供\(TemplateVariableConcept.accountingWorkName.placeholder())處理作業服務，僅係依 貴公司提供之文件與資料分類及彙總，並僅限協助　貴公司為\(TemplateVariableConcept.accountingWorkName.placeholder())處理作業服務使用。除本事務所分類及彙總有過失之情形外，如本事務所於本報價單意旨提供\(TemplateVariableConcept.accountingWorkName.placeholder())處理作業服務事項，而遭致第三人向本事務所為法律上之主張而致生損害時，貴公司同意負責補償該損害。另未經本事務所書面同意，本事務所所提供之服務不得提供他人使用；且若有此種情形致他人權益受損，本事務所不負任何責任。",
                 "本事務所對　貴公司所提供之各項資料或相關文件，當盡保密之責。",
             ])
         }
