@@ -456,7 +456,7 @@ public struct ServiceItem: Codable, Sendable {
                     .init(type: "assistanceWithCompanySeal", content: "代刻公司章(大)"),
                 ],
                 additionalServiceNameStrategy: .embedsPrice(AdditionalServiceNameFormat(
-                    template: "代刻公司章(大)各 {count} 枚(加收 {price} 元)",
+                    template: "代刻公司章(大章) {count} 枚(加收 {price} 元)",
                     requiresCount: true
                 )))
         }
@@ -476,7 +476,7 @@ public struct ServiceItem: Codable, Sendable {
                     .init(type: "assistanceWithChairmanSeal", content: "代刻公司章(小)"),
                 ],
                 additionalServiceNameStrategy: .embedsPrice(AdditionalServiceNameFormat(
-                    template: "代刻公司章(小)各 {count} 枚(加收 {price} 元)",
+                    template: "代刻負責人章(小章) {count} 枚(加收 {price} 元)",
                     requiresCount: true
                 )))
         }
