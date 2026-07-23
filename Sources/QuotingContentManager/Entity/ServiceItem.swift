@@ -574,7 +574,11 @@ public struct ServiceItem: Codable, Sendable {
                 ],
                 workItems: [
                     .init(type: "ownerOccupiedResidencePartForBusinessApplication", content: "自用住宅申請部分供營業用"),
-                ])
+                ],
+                additionalServiceNameStrategy: .embedsPrice(AdditionalServiceNameFormat(
+                    template: "自用住宅申請部分供營業用(加收 {price} 元)",
+                    requiresCount: false
+                )))
         }
     }
 }
