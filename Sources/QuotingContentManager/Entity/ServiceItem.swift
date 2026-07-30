@@ -114,12 +114,12 @@ public struct ServiceItem: Codable, Sendable {
                     .init(type: "standardReporting", content: "標準報表編製"),
                     .init(type: "customizedReporting", content: "客製化報表編製"),
                     .init(type: "businessTaxFiling", content: "營業稅申報作業"),
-                    .init(type: "costAnalysis", content: "成本表編製作業"),
-                    .init(type: "financialSettlement", content: "年底結算作業"),
                     .init(type: "provisionalIncomeTaxReturnFiling", content: "年度中暫繳申報"),
+                    .init(type: "financialSettlement", content: "年底結算作業"),
+                    .init(type: "withholdingStatementFiling", content: "各類給付扣繳(股利)憑單申報作業"),
                     .init(type: "profitseekingEnterpriseIncomeTaxFiling", content: "營利事業所得稅結算申報作業"),
                     .init(type: "undistributedEarningsFiling", content: "未分配盈餘結算申報作業"),
-                    .init(type: "withholdingStatementFiling", content: "各類給付扣繳(股利)憑單申報作業"),
+                    .init(type: "costAnalysis", content: "成本表編製作業"),
                 ],
                 paymentItemNameFormat: PaymentItemNameFormat(
                     template: "{name} \(TemplateVariableConcept.accountingStart.placeholder())"
