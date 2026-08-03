@@ -23,3 +23,17 @@ import Testing
     ]
     #expect(ServiceItem.accounting.workItems.map(\.type) == expected)
 }
+
+// 暫繳簽證：單一 workItem（複用記帳暫繳的 type 與文案）、無 term/scopeTerms（服務範圍呈現名稱＋條列）、
+// 酬金模板 `%ProvisionalIncomeTaxAuditStartYear%之{name}`（值含「年度」由 OC contributor 供給）。
+@Test func `provisionalIncomeTaxAudit is registered and matches contract`() async throws {
+    let item = try #require(QuotingContentManager.standard.getServiceItem(type: "ProvisionalIncomeTaxAudit"))
+    #expect(item.name == "暫繳簽證")
+    #expect(item.primary == true)
+    #expect(item.tags == ["ServiceItem/ProvisionalIncomeTaxAudit"])
+    #expect(item.workItems.map(\.type) == ["provisionalIncomeTaxReturnFiling"])
+    #expect(item.workItems.first?.content == "年度中暫繳申報")
+    #expect(item.effectiveScopeTerms.isEmpty)
+    #expect(item.paymentItemName(forTaxAccount: false) == "%ProvisionalIncomeTaxAuditStartYear%之暫繳簽證")
+    #expect(item.paymentItemName(forTaxAccount: true) == "%ProvisionalIncomeTaxAuditStartYear%之暫繳簽證")  // 無 taxAccountName，兩者同
+}
