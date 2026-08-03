@@ -37,4 +37,12 @@ struct TemplateVariableConceptTests {
         }
         #expect(TemplateVariableConcept.allCases.count == Set(TemplateVariableConcept.allCases.map(\.rawValue)).count)
     }
+
+    /// 暫繳簽證年度 concept：bundle 級、值含「年度」語意單位（見 design spec 決策 2）。
+    @Test("provisionalIncomeTaxAuditStartYear 已登記且為 bundle 級")
+    func provisionalIncomeTaxAuditStartYearIsRegisteredBundleConcept() {
+        #expect(TemplateVariableConcept.provisionalIncomeTaxAuditStartYear.rawValue == "ProvisionalIncomeTaxAuditStartYear")
+        #expect(TemplateVariableConcept.provisionalIncomeTaxAuditStartYear.scope == .bundle)
+        #expect(TemplateVariableConcept.provisionalIncomeTaxAuditStartYear.placeholder() == "%ProvisionalIncomeTaxAuditStartYear%")
+    }
 }

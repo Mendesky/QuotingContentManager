@@ -234,6 +234,29 @@ public struct ServiceItem: Codable, Sendable {
         }
     }
 
+    /// 暫繳簽證：對「年度中暫繳申報」做簽證。workItem 完全複用記帳的
+    /// `provisionalIncomeTaxReturnFiling`（type 與文案皆同），業務上與「記帳含暫繳申報 workItem」
+    /// 同 bundle 互斥（invariant 在 OpportunityContext AuditQuoting）。
+    /// 無 term / scopeTerms：服務範圍呈現「名稱＋條列 workItem」（同 CTP 的 workItems-only 模式）。
+    public static var provisionalIncomeTaxAudit: Self {
+        get {
+            .init(
+                type: "ProvisionalIncomeTaxAudit",
+                name: "暫繳簽證",
+                alias: "暫繳簽證",
+                primary: true,
+                tags: [
+                    "ServiceItem/ProvisionalIncomeTaxAudit",
+                ],
+                workItems: [
+                    .init(type: "provisionalIncomeTaxReturnFiling", content: "年度中暫繳申報"),
+                ],
+                paymentItemNameFormat: PaymentItemNameFormat(
+                    template: "\(TemplateVariableConcept.provisionalIncomeTaxAuditStartYear.placeholder())之{name}"
+                ))
+        }
+    }
+
     public static var cashierOperation: Self {
         get {
             .init(
