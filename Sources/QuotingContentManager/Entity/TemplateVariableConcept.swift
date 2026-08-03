@@ -46,6 +46,7 @@ public enum TemplateVariableConcept: String, CaseIterable, Sendable, Codable {
     case cashierBilling = "CashierBilling"
     case payrollSupportPeriod = "PayrollSupportPeriod"
     case payrollSupportBilling = "PayrollSupportBilling"
+    case provisionalIncomeTaxAuditStartYear = "ProvisionalIncomeTaxAuditStartYear"
 
     /// 值在哪個層級變動（內容語意）。
     public enum Scope: String, Sendable, Codable {
@@ -72,7 +73,8 @@ public enum TemplateVariableConcept: String, CaseIterable, Sendable, Codable {
              .profitseekingEnterpriseIncomeTaxFiling,
              .accountingPeriod, .accountingBilling,
              .cashierPeriod, .cashierBilling,
-             .payrollSupportPeriod, .payrollSupportBilling:
+             .payrollSupportPeriod, .payrollSupportBilling,
+             .provisionalIncomeTaxAuditStartYear:
             return .bundle
         }
     }
