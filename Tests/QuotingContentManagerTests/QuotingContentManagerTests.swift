@@ -24,6 +24,14 @@ import Testing
     #expect(ServiceItem.accounting.workItems.map(\.type) == expected)
 }
 
+// 記帳酬金名稱帶營所稅申報方式（PBI 3b81b546）：`{name}-%ProfitseekingEnterpriseIncomeTaxFiling% %AccountingStart%`，
+// 展開後如「稅務帳務處理作業-書審申報 (設立完成後開始)」。裸 key＝預設長描述（書審申報），glance 可切短描述（書審）。
+@Test func `accounting paymentItemName carries filing method placeholder`() async throws {
+    let item = ServiceItem.accounting
+    #expect(item.paymentItemName(forTaxAccount: true) == "稅務帳務處理作業-%ProfitseekingEnterpriseIncomeTaxFiling% %AccountingStart%")
+    #expect(item.paymentItemName(forTaxAccount: false) == "會計帳務處理作業-%ProfitseekingEnterpriseIncomeTaxFiling% %AccountingStart%")
+}
+
 // 暫繳簽證：單一 workItem（複用記帳暫繳的 type 與文案）、無 term/scopeTerms（服務範圍呈現名稱＋條列）、
 // 酬金模板 `%ProvisionalIncomeTaxAuditStartYear%之{name}`（值含「年度」由 OC contributor 供給）。
 @Test func `provisionalIncomeTaxAudit is registered and matches contract`() async throws {
