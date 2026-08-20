@@ -121,8 +121,11 @@ public struct ServiceItem: Codable, Sendable {
                     .init(type: "undistributedEarningsFiling", content: "未分配盈餘結算申報作業"),
                     .init(type: "costAnalysis", content: "成本表編製作業"),
                 ],
+                // 酬金名稱帶營所稅申報方式（PBI 3b81b546）：展開後如「稅務帳務處理作業-書審申報 (設立完成後開始)」。
+                // 裸 key＝預設長描述（書審申報），glance 可切短描述（書審）；申報方式 config 缺時 OC 發空字串 → 殘「-」，
+                // 與既有空值殘留慣例一致（如 %AccountingStart% 空字串殘 trailing space）。
                 paymentItemNameFormat: PaymentItemNameFormat(
-                    template: "{name} \(TemplateVariableConcept.accountingStart.placeholder())"
+                    template: "{name}-\(TemplateVariableConcept.profitseekingEnterpriseIncomeTaxFiling.placeholder()) \(TemplateVariableConcept.accountingStart.placeholder())"
                 ))
         }
     }
