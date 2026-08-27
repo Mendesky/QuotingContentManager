@@ -346,27 +346,18 @@ public struct ServiceItem: Codable, Sendable {
 
     /// 工商登記服務項目(目錄/預設版)。
     ///
-    /// `companyRegistration(for:)` 的 `paymentItemNameFormat` 會依組織型態產出不同資本額狀態:
-    /// 股份有限公司 → `\(TemplateVariableConcept.paidInCapital.placeholder(variant: "exact"))`(實收)、有限公司/獨資合夥 → `\(TemplateVariableConcept.registeredCapital.placeholder(variant: "exact"))`(登記)、
-    /// 非營利/執行業務所得/境外公司 → 不顯示資本額。
-    ///
-    /// 本預設版採「股份有限公司」情境(實收資本額),因該情境較常見。
-    ///
-    /// ⚠️ 此預設名稱只對股份有限公司正確;其他型態(尤其有限公司、獨資合夥需登記資本額)
-    /// 請務必改走 `companyRegistration(for:)`,否則資本額會錯。
+    /// 酬金名稱模板固定為 `{name}`（工商登記處理作業），不因組織型態變化。
     public static var companyRegistration: Self {
         get {
             companyRegistration(for: .companyLimitedByShares)
         }
     }
 
-    /// 依組織型態回傳工商登記服務項目,付款名稱帶對應資本額 placeholder。
+    /// 依組織型態回傳工商登記服務項目。酬金名稱不再依組織型態/資本額/地區/股東人數變化
+    /// （這些案件細節改由報價單備註一承載，見 QCM ContractNoteManager uniqueCode "15"）；
+    /// 保留 `organizationType` 參數是為了不動呼叫端簽名（OC `WhenCompanyRegistrationAdded` 沿用既有呼叫）。
     public static func companyRegistration(for organizationType: OrganizationType) -> Self {
-        let capitalSegment = organizationType.capitalPlaceholderKey.map { "%\($0)|exact%" } ?? ""
-        let format = PaymentItemNameFormat(
-            template: "{name}\(capitalSegment)\(TemplateVariableConcept.companyRegistrationRegion.placeholder())(不含動資查核)\(TemplateVariableConcept.companyRegistrationShareholder.placeholder())"
-        )
-        return companyRegistration(paymentItemNameFormat: format)
+        companyRegistration(paymentItemNameFormat: PaymentItemNameFormat(template: "{name}"))
     }
 
     /// 工商登記服務項目骨架(共用):帶入算好的 `paymentItemNameFormat`。
@@ -381,8 +372,8 @@ public struct ServiceItem: Codable, Sendable {
                 "ServiceItem/CompanyRegistration"
             ],
             workItems: [
-                .init(type: "companyNameAndBusinessScopeReservation", content: "經濟部公司名稱預查"),
-                .init(type: "economicMinistryRegistration", content: "經濟部設立登記"),
+                .init(type: "companyNameAndBusinessScopeReservation", content: "公司名稱預查"),
+                .init(type: "economicMinistryRegistration", content: "公司設立登記"),
                 .init(type: "regulationsGoverningAuditingAndAttestationCertification", content: "設立資本額查核簽證"),
                 .init(type: "antiMoneyLaunderingCertification", content: "防洗錢查核簽證"),
                 .init(type: "exporterImporterRegistration", content: "國貿局進出口登記"),
