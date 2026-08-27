@@ -26,6 +26,7 @@ public enum TemplateVariableConcept: String, CaseIterable, Sendable, Codable {
     case estimatedAnnualRevenue = "EstimatedAnnualRevenue"
     case paidInCapital = "PaidInCapital"
     case registeredCapital = "RegisteredCapital"
+    case organizationTypeName = "OrganizationTypeName"
     case financialComplianceAuditGroundName = "FinancialComplianceAuditGroundName"
     case financialComplianceAuditGroundAmount = "FinancialComplianceAuditGroundAmount"
     case defaultAccountingPaymentItemSupplementaryNote = "DefaultAccountingPaymentItemSupplementaryNote"
@@ -61,7 +62,7 @@ public enum TemplateVariableConcept: String, CaseIterable, Sendable, Codable {
         case .defaultFromName, .serviceItemNames, .accountingWorkName:
             return .grouping
         case .quotingCaseName, .defaultToName, .totalAssets, .estimatedAnnualRevenue,
-             .paidInCapital, .registeredCapital,
+             .paidInCapital, .registeredCapital, .organizationTypeName,
              .financialComplianceAuditGroundName, .financialComplianceAuditGroundAmount,
              .defaultAccountingPaymentItemSupplementaryNote,
              .defaultFinancialComplianceAuditPaymentItemSupplementaryNote,
