@@ -45,4 +45,15 @@ struct TemplateVariableConceptTests {
         #expect(TemplateVariableConcept.provisionalIncomeTaxAuditStartYear.scope == .bundle)
         #expect(TemplateVariableConcept.provisionalIncomeTaxAuditStartYear.placeholder() == "%ProvisionalIncomeTaxAuditStartYear%")
     }
+
+    /// 組織型態名稱 concept：case 級。
+    @Test("organizationTypeName 是 case 級變數")
+    func organizationTypeNameIsCaseLevel() {
+        #expect(TemplateVariableConcept.organizationTypeName.scope == .caseLevel)
+    }
+
+    @Test("organizationTypeName 的 placeholder 為 %OrganizationTypeName%")
+    func organizationTypeNamePlaceholderIsCorrect() {
+        #expect(TemplateVariableConcept.organizationTypeName.placeholder() == "%OrganizationTypeName%")
+    }
 }
