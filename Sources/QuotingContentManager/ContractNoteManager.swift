@@ -55,7 +55,7 @@ public struct ContractNoteManager: Sendable {
                 "ServiceItemConfig/is_providing_electronic_file:true",
             ]),
         ], weight: 50, content: """
-        須提供 %Reform:period% 相關會計帳務報表及帳冊（含日記帳、實帳戶科目餘額明細）Excel 電子檔，若未能提供將另與　貴公司討論報價金額。
+        須提供 \(TemplateVariableConcept.reformPeriod.placeholder()) 相關會計帳務報表及帳冊（含日記帳、實帳戶科目餘額明細）Excel 電子檔，若未能提供將另與　貴公司討論報價金額。
         """),
         .init(uniqueCode: "10", traits: [
             .init(tags: [

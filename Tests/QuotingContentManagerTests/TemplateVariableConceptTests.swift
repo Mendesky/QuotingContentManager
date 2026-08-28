@@ -10,8 +10,13 @@ struct TemplateVariableConceptTests {
     private static let knownConcepts = Set(TemplateVariableConcept.allCases.map(\.rawValue))
 
     private func assertPlaceholders(in text: String, where location: String) {
-        // 抓 `%Concept%` 或 `%Concept|variant%`，capture concept（|variant 前）。local regex 避免 static 非 Sendable。
-        let regex = try! Regex("%([A-Za-z][A-Za-z0-9]*)(?:\\|[a-z]+)?%")
+        // 抓 `%key%`，capture concept（第一個 `|` 之前那段）。
+        //
+        // **key 的字元集必須與消費端一致**（前端 `TEMPLATE_VAR_KEY_BODY` = `[A-Za-z][A-Za-z0-9|:]*`）。
+        // 原本這裡不含 `:`，於是 `%Reform:period%` 根本不被視為 placeholder、整條規則跳過它 ——
+        // 而前端含 `:`，照樣把它當變數、解不到就印出 `[Reform:period]`。
+        // 守衛比消費端窄，等於為「長得像變數但沒登記」的字串開了一個永遠測不到的洞。
+        let regex = try! Regex("%([A-Za-z][A-Za-z0-9:]*)(?:\\|[A-Za-z]+)?%")
         for match in text.matches(of: regex) {
             let concept = String(match.output[1].substring ?? "")
             #expect(
