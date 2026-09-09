@@ -108,6 +108,22 @@ public struct ContractNoteManager: Sendable {
         .init(uniqueCode: "15", traits: ["ServiceItem/CompanyRegistration"], weight: 67, content: """
         工商登記處理作業：\(TemplateVariableConcept.organizationTypeName.placeholder())、資本額\(TemplateVariableConcept.paidInCapital.placeholder(variant: "exact"))\(TemplateVariableConcept.registeredCapital.placeholder(variant: "exact"))、\(TemplateVariableConcept.companyRegistrationRegion.placeholder())、\(TemplateVariableConcept.companyRegistrationShareholder.placeholder())。
         """),
+        // 專案整帳（ProjectAccountingReform）版的電子檔提供備註，與 uniqueCode 9 是同一段文案的兩張卡版本。
+        //
+        // **為什麼是新的 uniqueCode，而不是在 9 上多掛一個 trait**：uniqueCode 會寫進上游 Quotation 的
+        // 事件流，是「這是哪一條備註」的識別。兩張卡共用一個 code，日後要讓文案分岔就得做資料遷移。
+        // 新增 code 是純附加，對存量沒有影響。
+        //
+        // 期間 placeholder 用帶 variant 的版本（9 寫的 `%Reform:period%` 是死 key —— concept 沒有那個值、
+        // 變體語法也是 `|` 不是 `:`，展開後會把字面印上 PDF）。9 的修正另案處理，不在本次動它的文案。
+        .init(uniqueCode: "16", mutex: .tags(["ServiceItemConfig/is_providing_electronic_file:false"]), traits: [
+            .init(tags: [
+                "ServiceItem/ProjectAccountingReform",
+                "ServiceItemConfig/is_providing_electronic_file:true",
+            ]),
+        ], weight: 50, content: """
+        須提供 \(TemplateVariableConcept.reformPeriod.placeholder(variant: "project")) 相關會計帳務報表及帳冊（含日記帳、實帳戶科目餘額明細）Excel 電子檔，若未能提供將另與　貴公司討論報價金額。
+        """),
     ]
 
     public init() {}

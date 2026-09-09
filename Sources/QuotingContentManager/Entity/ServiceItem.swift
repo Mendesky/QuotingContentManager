@@ -149,6 +149,39 @@ public struct ServiceItem: Codable, Sendable {
         }
     }
 
+    /// 一次性專案專用的獨立整帳卡（上游 `QuotingAggregate.ServiceItemType.projectAccountingReform`）。
+    ///
+    /// 與 `accountingReform` 是兩張不同的卡，差別在上游：那張恆掛在記帳卡之下、不進服務範圍；
+    /// 這張不掛母卡、進服務範圍但**只印名稱**。
+    ///
+    /// **刻意不給 `term` / `scopeTerms`**：上游把它分類為 `.introOnly`，沒有 scopeTerm 時
+    /// 渲染端只印標題那一行 —— 這正是產品要的「單純印名稱」。給了 term 反而會多印一段。
+    ///
+    /// **`workItems` 不可省略**：上游 `GetServiceScope` 會逐一 `serviceItem.workItem(type:)`，
+    /// 查無即 throw，而那一步發生在讀 presentation 之前。「服務範圍不印條列」是呈現層的事，
+    /// 不代表這裡可以不宣告 workItem。
+    public static var projectAccountingReform: Self {
+        get {
+            .init(
+                type: "ProjectAccountingReform",
+                name: "會計帳務重整作業(專案)",
+                alias: "專案整帳",
+                primary: false,
+                tags: [
+                    "ServiceItem/ProjectAccountingReform"
+                ],
+                workItems: [
+                    .init(type: "accountingReform", content: "會計帳務重整作業"),
+                ],
+                // variant "project" 不可省略：上游算兩個 key —— `ReformPeriod`（給 accountingReform）
+                // 與 `ReformPeriod|project`（給本卡）。寫成不帶 variant 的 `%ReformPeriod%`，
+                // 跨 bundle 同時存在兩張整帳時，本卡的酬金名稱會靜默取到另一張的期間。
+                paymentItemNameFormat: PaymentItemNameFormat(
+                    template: "{name}\(TemplateVariableConcept.reformPeriod.placeholder(variant: "project"))"
+                ))
+        }
+    }
+
     public static var financialComplianceAudit: Self {
         get {
             .init(
