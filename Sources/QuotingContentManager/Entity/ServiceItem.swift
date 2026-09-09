@@ -170,8 +170,11 @@ public struct ServiceItem: Codable, Sendable {
                 tags: [
                     "ServiceItem/ProjectAccountingReform"
                 ],
+                // type 是專屬的 `projectAccountingReform`，**不與 AccountingReform 共用**：
+                // 共用會讓上游 checkDuplicateWorkItemTypesWithinBundle 擋掉「同 bundle 兩張整帳」，
+                // 而那條限制業務上沒人要求過，純粹是 workItem 撞名的副作用。
                 workItems: [
-                    .init(type: "accountingReform", content: "會計帳務重整作業"),
+                    .init(type: "projectAccountingReform", content: "專案會計帳務重整作業"),
                 ],
                 // variant "project" 不可省略：上游算兩個 key —— `ReformPeriod`（給 accountingReform）
                 // 與 `ReformPeriod|project`（給本卡）。寫成不帶 variant 的 `%ReformPeriod%`，
