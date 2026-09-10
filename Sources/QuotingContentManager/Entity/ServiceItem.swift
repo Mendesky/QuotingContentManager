@@ -22,17 +22,6 @@ public struct ServiceItem: Codable, Sendable {
     /// 拆成顯式宣告，價格型一定帶 format（型別強制）。詳見 `AdditionalServiceNameStrategy`。
     public let additionalServiceNameStrategy: AdditionalServiceNameStrategy
     public let paymentItemNameFormat: PaymentItemNameFormat?
-    /// 「這張卡沒有營所稅申報作業」時改用的酬金名稱模板。`nil` = 沒有這個分版，一律用
-    /// `paymentItemNameFormat`（除記帳外的服務項目都是 nil）。
-    ///
-    /// **為什麼需要分版而不是讓變數解成空字串**：記帳的主模板是
-    /// `{name}-%ProfitseekingEnterpriseIncomeTaxFiling% …`，那個連字號寫在**模板**裡。
-    /// 沒有申報方式時把變數解成空字串，名稱會殘一個孤兒的「-」。
-    ///
-    /// **判準是「這張卡有沒有 profitseekingEnterpriseIncomeTaxFiling 工作項目」，不是帳別**：
-    /// 管理帳的 validWorkItems 不含它，但**財務帳含**（財務帳＝全集）。用 `forTaxAccount`
-    /// 當判準會把財務帳的申報方式一起砍掉。
-    public let paymentItemNameFormatWithoutIncomeTaxFiling: PaymentItemNameFormat?
 
     public init(
         type: String,
@@ -45,8 +34,7 @@ public struct ServiceItem: Codable, Sendable {
         workItems: [WorkItem] = [],
         scopeTerms: [ScopeTerm] = [],
         additionalServiceNameStrategy: AdditionalServiceNameStrategy = .flatName,
-        paymentItemNameFormat: PaymentItemNameFormat? = nil,
-        paymentItemNameFormatWithoutIncomeTaxFiling: PaymentItemNameFormat? = nil
+        paymentItemNameFormat: PaymentItemNameFormat? = nil
     ) {
         self.type = type
         self.name = name
@@ -59,7 +47,6 @@ public struct ServiceItem: Codable, Sendable {
         self.scopeTerms = scopeTerms
         self.additionalServiceNameStrategy = additionalServiceNameStrategy
         self.paymentItemNameFormat = paymentItemNameFormat
-        self.paymentItemNameFormatWithoutIncomeTaxFiling = paymentItemNameFormatWithoutIncomeTaxFiling
     }
 
     public init(from decoder: Decoder) throws {
@@ -75,7 +62,6 @@ public struct ServiceItem: Codable, Sendable {
         self.scopeTerms = try container.decodeIfPresent([ScopeTerm].self, forKey: .scopeTerms) ?? []
         self.additionalServiceNameStrategy = try container.decodeIfPresent(AdditionalServiceNameStrategy.self, forKey: .additionalServiceNameStrategy) ?? .flatName
         self.paymentItemNameFormat = try container.decodeIfPresent(PaymentItemNameFormat.self, forKey: .paymentItemNameFormat)
-        self.paymentItemNameFormatWithoutIncomeTaxFiling = try container.decodeIfPresent(PaymentItemNameFormat.self, forKey: .paymentItemNameFormatWithoutIncomeTaxFiling)
     }
 
     public var effectiveScopeTerms: [ScopeTerm] {
@@ -99,14 +85,8 @@ public struct ServiceItem: Codable, Sendable {
     /// 結合 `displayName(forTaxAccount:)` 與 `paymentItemNameFormat.template` 算出 paymentItem 顯示名稱。
     /// `{name}` 由本 method 替換為 displayName；`%xxx%` placeholder 保留交由 frontend 展開。
     /// 若 serviceItem 沒有設定 `paymentItemNameFormat`，回 nil（caller 端 fallback 為 displayName 即可）。
-    /// - Parameter hasIncomeTaxFiling: 這張卡有沒有「營利事業所得稅結算申報作業」工作項目。
-    ///   `false` 且本 serviceItem 有設 `paymentItemNameFormatWithoutIncomeTaxFiling` 時改用該版
-    ///   （記帳專用；其餘服務項目沒有分版，傳什麼都一樣）。預設 `true` 讓既有呼叫端行為不變。
-    public func paymentItemName(forTaxAccount isTaxAccount: Bool, hasIncomeTaxFiling: Bool = true) -> String? {
-        let format = hasIncomeTaxFiling
-            ? paymentItemNameFormat
-            : (paymentItemNameFormatWithoutIncomeTaxFiling ?? paymentItemNameFormat)
-        return format?.resolve(name: displayName(forTaxAccount: isTaxAccount))
+    public func paymentItemName(forTaxAccount isTaxAccount: Bool) -> String? {
+        paymentItemNameFormat?.resolve(name: displayName(forTaxAccount: isTaxAccount))
     }
 
 
@@ -142,15 +122,10 @@ public struct ServiceItem: Codable, Sendable {
                     .init(type: "costAnalysis", content: "成本表編製作業"),
                 ],
                 // 酬金名稱帶營所稅申報方式（PBI 3b81b546）：展開後如「稅務帳務處理作業-書審申報 (設立完成後開始)」。
-                // 裸 key＝預設長描述（書審申報），glance 可切短描述（書審）。
+                // 裸 key＝預設長描述（書審申報），glance 可切短描述（書審）；申報方式 config 缺時 OC 發空字串 → 殘「-」，
+                // 與既有空值殘留慣例一致（如 %AccountingStart% 空字串殘 trailing space）。
                 paymentItemNameFormat: PaymentItemNameFormat(
                     template: "{name}-\(TemplateVariableConcept.profitseekingEnterpriseIncomeTaxFiling.placeholder()) \(TemplateVariableConcept.accountingStart.placeholder())"
-                ),
-                // 沒有「營利事業所得稅結算申報作業」工作項目的記帳卡（管理帳恆是；稅務帳／財務帳
-                // 可由使用者取消勾選）——整段連同連字號拿掉，而不是讓變數解成空字串殘一個孤兒「-」。
-                // 上游依 workItemTypes 決定用哪一版，不是依帳別：財務帳＝全集、含營所稅申報。
-                paymentItemNameFormatWithoutIncomeTaxFiling: PaymentItemNameFormat(
-                    template: "{name} \(TemplateVariableConcept.accountingStart.placeholder())"
                 ))
         }
     }
