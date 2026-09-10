@@ -7,6 +7,7 @@ public struct QuotingContentManager: Sendable {
     public var serviceItems: [ServiceItem] = [
         .accounting,
         .accountingReform,
+        .projectAccountingReform,
         .financialComplianceAudit,
         .taxComplianceAudit,
         .taxComplianceAuditAndUndistributedEarningsAudit,
