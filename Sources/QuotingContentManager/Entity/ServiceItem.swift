@@ -499,14 +499,14 @@ public struct ServiceItem: Codable, Sendable {
         get {
             .init(
                 type: "AssistanceWithCompanySeal",
-                name: "代刻公司章(大)",
-                alias: "公司章(大)",
+                name: "代刻公司章(大章)",
+                alias: "公司章(大章)",
                 primary: true,
                 tags: [
                     "ServiceItem/AssistanceWithCompanySeal"
                 ],
                 workItems: [
-                    .init(type: "assistanceWithCompanySeal", content: "代刻公司章(大)"),
+                    .init(type: "assistanceWithCompanySeal", content: "代刻公司章(大章)"),
                 ],
                 additionalServiceNameStrategy: .embedsPrice(AdditionalServiceNameFormat(
                     template: "代刻公司章(大章) {count} 枚(加收 {price} 元)",
@@ -519,14 +519,14 @@ public struct ServiceItem: Codable, Sendable {
         get {
             .init(
                 type: "AssistanceWithChairmanSeal",
-                name: "代刻公司章(小)",
-                alias: "公司章(小)",
+                name: "代刻負責人章(小章)",
+                alias: "負責人章(小章)",
                 primary: true,
                 tags: [
                     "ServiceItem/AssistanceWithChairmanSeal"
                 ],
                 workItems: [
-                    .init(type: "assistanceWithChairmanSeal", content: "代刻公司章(小)"),
+                    .init(type: "assistanceWithChairmanSeal", content: "代刻負責人章(小章)"),
                 ],
                 additionalServiceNameStrategy: .embedsPrice(AdditionalServiceNameFormat(
                     template: "代刻負責人章(小章) {count} 枚(加收 {price} 元)",
