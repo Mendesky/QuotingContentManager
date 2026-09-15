@@ -16,9 +16,12 @@ struct AdditionalServiceNameStrategyTests {
         .assistanceWithChairmanConvenienceSeal,
         .assistanceWithInvoiceSeal,
         .assistanceWithLaborAndHealthInsuranceInsuredUnitSetting,
+        // 自用住宅：2026-07 起改為 .embedsPrice（PDF 需顯示加收金額），不再是純名稱項目。
+        .ownerOccupiedResidencePartForBusinessApplication,
     ]
 
-    /// 純名稱項目：一般服務 + 純名稱附加服務（自用住宅），策略必為 `.flatName`。
+    /// 純名稱項目：一般服務，策略必為 `.flatName`。
+    /// （自用住宅原屬此列，2026-07 改為 `.embedsPrice` 後已移至 `priceEmbeddingItems`。）
     private static let flatNameItems: [ServiceItem] = [
         .accounting,
         .accountingReform,
@@ -29,7 +32,6 @@ struct AdditionalServiceNameStrategyTests {
         .payrollSupportOperation,
         .customized,
         .companyRegistration,
-        .ownerOccupiedResidencePartForBusinessApplication,
     ]
 
     private static func format(of item: ServiceItem) -> AdditionalServiceNameFormat? {
@@ -86,8 +88,9 @@ struct AdditionalServiceNameStrategyTests {
             (.ctp, "代辦年度CTP申報"),
             (.assistanceAnnualSupplementaryPremiumDeductionDetailsReporting, "代辦年度補充保費扣費明細彙報"),
             (.assistanceWithCompanyCertificationApplication, "代辦工商憑證申請"),
-            (.assistanceWithCompanySeal, "代刻公司章(大)"),
-            (.assistanceWithChairmanSeal, "代刻公司章(小)"),
+            (.assistanceWithCompanySeal, "代刻公司章(大章)"),
+            // 負責人章：template 的字眼與 catalog `name`（代刻公司章(小)）刻意不同，以 template 為準。
+            (.assistanceWithChairmanSeal, "代刻負責人章(小章)"),
             (.assistanceWithCompanyConvenienceSeal, "代刻公司便章(大)"),
             (.assistanceWithChairmanConvenienceSeal, "代刻公司便章(小)"),
             (.assistanceWithInvoiceSeal, "代刻發票章"),

@@ -49,11 +49,7 @@ public struct ContractNoteManager: Sendable {
         \(TemplateVariableConcept.accountingWorkName.placeholder())處理作業費用\(TemplateVariableConcept.accountingPeriod.placeholder())，並\(TemplateVariableConcept.accountingBilling.placeholder())，並應支付至本事務所指定之銀行帳戶。
         承辦委任事項所發生之代墊費用，包括機票、簽證、住宿等，另行檢具相關憑證向 貴公司請款。
         """),
-        // ⚠️ 內文的 `%Reform:period%` 是**死 key**：concept 沒有那個值，變體語法也是 `|` 不是 `:`
-        // （正確寫法為 `TemplateVariableConcept.reformPeriod.placeholder()`）。展開不到 → 字面印上 PDF。
-        // 尚未修，修正需要產品確認 before/after 文案。
-        //
-        // 註：曾有一筆 uniqueCode 16 是本段文案的「專案整帳」版本，已於 2026-09-15 移除——
+        // 曾有一筆 uniqueCode 16 是本段文案的「專案整帳」版本，已於 2026-09-15 移除——
         // 專案整帳不再有「是否提供電子檔」config（OC 寫側擋掉），該 trait 組合永遠不成立。
         // 存量報價單不受影響：備註內容是快照寫進 Quotation 的 `ContractNoteAddedByTraits.note`。
         .init(uniqueCode: "9", mutex: .tags(["ServiceItemConfig/is_providing_electronic_file:false"]), traits: [
