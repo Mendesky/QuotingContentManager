@@ -24,6 +24,9 @@ struct ContractNoteManagerRegistrationNote1Tests {
         // 不再併排實收／登記兩個 token（依組織型態二擇一靠空字串隱藏，編輯器會露出灰底 [Key]）
         #expect(!content.contains("%PaidInCapital|"))
         #expect(!content.contains("%RegisteredCapital|"))
+        // `Capital|exact` 的值本身以「資本額」開頭（如「資本額350萬元」），原文不可再寫死前綴，否則印成「資本額資本額…」
+        #expect(!content.contains("資本額%Capital|"))
+        #expect(content.contains("、%Capital|exact%、"))
         #expect(content.contains("%CompanyRegistrationRegion%"))
         #expect(content.contains("%CompanyRegistrationShareholder%"))
     }
