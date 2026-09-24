@@ -16,12 +16,14 @@ struct ContractNoteManagerRegistrationNote1Tests {
         #expect(note15?.traits.first?.tags.contains("ServiceItem/CompanyRegistration") == true)
     }
 
-    @Test("備註一內容含四個範本變數（組織型態、資本額 exact 雙版本、地區、股東）")
+    @Test("備註一內容含四個範本變數（組織型態、登記/實收資本額 exact、地區、股東）")
     func note15ContainsPlaceholders() {
         let content = notes.first { $0.uniqueCode == "15" }?.content ?? ""
         #expect(content.contains("%OrganizationTypeName%"))
-        #expect(content.contains("%PaidInCapital|exact%"))
-        #expect(content.contains("%RegisteredCapital|exact%"))
+        #expect(content.contains("%Capital|exact%"))
+        // 不再併排實收／登記兩個 token（依組織型態二擇一靠空字串隱藏，編輯器會露出灰底 [Key]）
+        #expect(!content.contains("%PaidInCapital|"))
+        #expect(!content.contains("%RegisteredCapital|"))
         #expect(content.contains("%CompanyRegistrationRegion%"))
         #expect(content.contains("%CompanyRegistrationShareholder%"))
     }
