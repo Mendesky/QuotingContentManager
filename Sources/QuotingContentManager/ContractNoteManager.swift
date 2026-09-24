@@ -109,7 +109,7 @@ public struct ContractNoteManager: Sendable {
         採非稅務簽證申報之案件當年度若需協助國稅局營所稅查核，將另與　貴公司討論服務費報價金額。
         """),
         .init(uniqueCode: "15", traits: ["ServiceItem/CompanyRegistration"], weight: 67, content: """
-        工商登記處理作業：\(TemplateVariableConcept.organizationTypeName.placeholder())、資本額\(TemplateVariableConcept.capital.placeholder(variant: "exact"))、\(TemplateVariableConcept.companyRegistrationRegion.placeholder())、\(TemplateVariableConcept.companyRegistrationShareholder.placeholder())。
+        工商登記處理作業：\(TemplateVariableConcept.organizationTypeName.placeholder())、\(TemplateVariableConcept.capital.placeholder(variant: "exact"))、\(TemplateVariableConcept.companyRegistrationRegion.placeholder())、\(TemplateVariableConcept.companyRegistrationShareholder.placeholder())。
         """),
     ]
 
