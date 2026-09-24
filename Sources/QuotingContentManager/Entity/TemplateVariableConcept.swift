@@ -26,6 +26,10 @@ public enum TemplateVariableConcept: String, CaseIterable, Sendable, Codable {
     case estimatedAnnualRevenue = "EstimatedAnnualRevenue"
     case paidInCapital = "PaidInCapital"
     case registeredCapital = "RegisteredCapital"
+    /// 登記/實收資本額：只要有任一種資本額就有值，兩者都有時優先取實收。
+    /// 供不區分組織型態的文案引用（如工商登記備註一），免去併排 `PaidInCapital`／`RegisteredCapital`
+    /// 並靠空字串隱藏不適用那一個的寫法。
+    case capital = "Capital"
     case organizationTypeName = "OrganizationTypeName"
     case financialComplianceAuditGroundName = "FinancialComplianceAuditGroundName"
     case financialComplianceAuditGroundAmount = "FinancialComplianceAuditGroundAmount"
@@ -62,7 +66,7 @@ public enum TemplateVariableConcept: String, CaseIterable, Sendable, Codable {
         case .defaultFromName, .serviceItemNames, .accountingWorkName:
             return .grouping
         case .quotingCaseName, .defaultToName, .totalAssets, .estimatedAnnualRevenue,
-             .paidInCapital, .registeredCapital, .organizationTypeName,
+             .paidInCapital, .registeredCapital, .capital, .organizationTypeName,
              .financialComplianceAuditGroundName, .financialComplianceAuditGroundAmount,
              .defaultAccountingPaymentItemSupplementaryNote,
              .defaultFinancialComplianceAuditPaymentItemSupplementaryNote,

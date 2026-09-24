@@ -61,4 +61,16 @@ struct TemplateVariableConceptTests {
     func organizationTypeNamePlaceholderIsCorrect() {
         #expect(TemplateVariableConcept.organizationTypeName.placeholder() == "%OrganizationTypeName%")
     }
+
+    /// 登記/實收資本額 concept：case 級（與 paidInCapital / registeredCapital 同層）。
+    @Test("capital 是 case 級變數")
+    func capitalIsCaseLevel() {
+        #expect(TemplateVariableConcept.capital.scope == .caseLevel)
+    }
+
+    @Test("capital 的 placeholder 為 %Capital% / %Capital|exact%")
+    func capitalPlaceholderIsCorrect() {
+        #expect(TemplateVariableConcept.capital.placeholder() == "%Capital%")
+        #expect(TemplateVariableConcept.capital.placeholder(variant: "exact") == "%Capital|exact%")
+    }
 }
