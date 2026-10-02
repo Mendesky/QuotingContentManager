@@ -98,14 +98,16 @@ public struct ContractNoteInfo: Sendable {
         return text + terminator
     }
 
-    /// 所有段落都在時的完整內文。只用於「不知道選了什麼服務」的場合（例如列出母版全文做比對）；
-    /// 寫進報價單的內容請走 `composedContent(subsetOf:)`。
+    /// 把所有段落無條件串起來。**這不是任何一份報價單會印出來的內容** —— 名字刻意不叫
+    /// `fullContent`，免得讀起來像「完整內文」而被拿去斷言完整句子。
     ///
-    /// ⚠️ **它假設段落彼此相加**，但段落也可以是**互為替代**的：註一的主詞三段中，
-    /// 「營業收入總額」與「營業收入總額及憑證量」靠 `excluded` 互斥（講同一個指標），
-    /// 全部串起來會讀成「營業收入總額、營業收入總額及憑證量」。那不是任何一份報價單會印出來的內容，
-    /// 所以這支只適合拿來做字串存在性檢查，不要用它斷言完整句子。
-    public var fullContent: String {
+    /// 它假設段落彼此相加，但段落也可以是**互為替代**的：註一的主詞三段中，「營業收入總額」
+    /// 與「營業收入總額及憑證量」靠 `excluded` 互斥（兩者講同一個指標），全部串起來會讀成
+    /// 「營業收入總額、營業收入總額及憑證量」。
+    ///
+    /// 用途只有一個：**不知道選了什麼服務時的字串存在性檢查**（例如掃所有備註有沒有出現某個字眼）。
+    /// 寫進報價單的內容一律走 `composedContent(subsetOf:)`。
+    public var allSegmentsJoined: String {
         var text = ""
         for (index, segment) in segments.enumerated() {
             if index > 0 { text += segment.separator }

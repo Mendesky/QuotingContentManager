@@ -260,7 +260,7 @@ struct ContractNoteOptionGroupTests {
         for note in QuotingContentManager.standard.contractNoteManager.notes {
             guard note.optionGroup != nil else { continue }
             checked += 1
-            #expect(!note.fullContent.contains("附加服務選項"), "備註 \(note.uniqueCode) 的內文自己寫了序號")
+            #expect(!note.allSegmentsJoined.contains("附加服務選項"), "備註 \(note.uniqueCode) 的內文自己寫了序號")
         }
         #expect(checked == 2, "目前只有 CTP 與補充保費兩條備註掛群組，實得 \(checked)")
     }
