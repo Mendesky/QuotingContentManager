@@ -18,7 +18,7 @@ struct ContractNoteManagerRegistrationNote1Tests {
 
     @Test("備註一內容含四個範本變數（組織型態、登記/實收資本額 exact、地區、股東）")
     func note15ContainsPlaceholders() {
-        let content = notes.first { $0.uniqueCode == "15" }?.content ?? ""
+        let content = notes.first { $0.uniqueCode == "15" }?.fullContent ?? ""
         #expect(content.contains("%OrganizationTypeName%"))
         #expect(content.contains("%Capital|exact%"))
         // 不再併排實收／登記兩個 token（依組織型態二擇一靠空字串隱藏，編輯器會露出灰底 [Key]）
@@ -52,7 +52,7 @@ struct ContractNoteManagerRegistrationNote2Tests {
     @Test("備註 3 第一行含投審司、動資查核、工廠及特許項目字樣")
     func note3ExpandedExclusions() {
         let note3 = ContractNoteManager().notes.first { $0.uniqueCode == "3" }
-        let content = note3?.content ?? ""
+        let content = note3?.fullContent ?? ""
         #expect(content.contains("投審司"))
         #expect(content.contains("動資查核"))
         #expect(content.contains("工廠及特許項目"))
@@ -63,14 +63,17 @@ struct ContractNoteManagerRegistrationNote2Tests {
 @Suite("QuotingContentManager — 母版文案")
 struct MasterTemplateTests {
 
-    @Test("letter.content（母版文案）不含「有關」二字，且變數與其餘文字保留")
-    func letterContentOmitsYouGuan() {
+    // ⚠️ 這條的期望值在 1150828 母版改版時**反轉**了。
+    // commit 5772dba「母版文案去『有關』」刻意把 letter.content 的「有關」拿掉；1150828 母版
+    // （藍儀 CPA）又把它加回來，而且該處沒有刪除線標記、是正文。兩次相隔不久，有可能是那份
+    // Word 母版在這一句上沒跟上 5772dba 的修訂。已回報待確認，確認前以母版為準。
+    @Test("letter.content（母版文案）含「有關」二字，且變數與其餘文字保留")
+    func letterContentKeepsYouGuan() {
         let content = QuotingContentManager.standard.letter.content
-        #expect(!content.contains("有關"))
-        #expect(content.contains("茲將附上\(TemplateVariableConcept.quotingCaseName.placeholder())\(TemplateVariableConcept.serviceItemNames.placeholder())之專業服務公費報價單。"))
+        #expect(content.contains("茲將附上\(TemplateVariableConcept.quotingCaseName.placeholder())有關\(TemplateVariableConcept.serviceItemNames.placeholder())之專業服務公費報價單。"))
     }
 
-    @Test("contractHeader／purpose／letter.title 的「有關」不受影響（本次僅動 letter.content 一處）")
+    @Test("contractHeader／purpose／letter.title 的「有關」不受影響")
     func onlyLetterContentChanged() {
         let manager = QuotingContentManager.standard
         #expect(manager.contractHeader.title.contains("有關"))

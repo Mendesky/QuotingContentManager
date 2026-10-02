@@ -106,3 +106,176 @@ struct AdditionalServiceNameStrategyTests {
         }
     }
 }
+
+/// 1150828 母版把加收金額改成「阿拉伯數字＋中文單位」且拿掉 `{price}` 前後的空格
+/// （母版寫「加收2仟元/家」，不是「加收 2,000 元/家」，也不是國字大寫的「貳仟」）。
+@Suite("附加服務金額的中文單位")
+struct AdditionalServicePriceFormattingTests {
+
+    private func rendered(_ price: Decimal) -> String {
+        AdditionalServiceNameFormat(template: "加收{price}元", requiresCount: false)
+            .render(price: price, count: nil)
+    }
+
+    @Test("百位以上逐級拆單位，餘數接在後面")
+    func chineseUnits() {
+        #expect(rendered(800) == "加收8佰元")
+        #expect(rendered(1000) == "加收1仟元")
+        #expect(rendered(1200) == "加收1仟2佰元")
+        #expect(rendered(2000) == "加收2仟元")
+        #expect(rendered(2500) == "加收2仟5佰元")
+        #expect(rendered(3000) == "加收3仟元")
+        #expect(rendered(20000) == "加收2萬元")
+        #expect(rendered(25000) == "加收2萬5仟元")
+        #expect(rendered(150) == "加收1佰50元")
+    }
+
+    // 不足百與非整數金額維持原本的千分位寫法——中文單位拆不出有意義的結果。
+    // 非整數本來就會被既有的 `maximumFractionDigits = 0` 截掉小數，這裡只是釘住「不走中文單位」。
+    @Test("不足百與非整數金額維持原寫法")
+    func fallsBackBelowHundred() {
+        #expect(rendered(0) == "加收0元")
+        #expect(rendered(80) == "加收80元")
+        #expect(rendered(Decimal(string: "1500.5")!) == "加收1,500元")
+    }
+
+    @Test("所有價格型模板都不再有 {price} 前後的空格")
+    func noSurroundingSpaces() {
+        var checked = 0
+        for item in QuotingContentManager.standard.serviceItems {
+            guard case let .embedsPrice(format) = item.additionalServiceNameStrategy else { continue }
+            checked += 1
+            #expect(!format.template.contains(" {price}"), "\(item.type): {price} 前仍有空格")
+            #expect(!format.template.contains("{price} "), "\(item.type): {price} 後仍有空格")
+        }
+        #expect(checked == 10, "價格型附加服務應有 10 個，實得 \(checked)")
+    }
+}
+
+/// 註號引用（`{noteRef}`）。
+///
+/// 1150828 母版的同意函把 CTP 與補充保費兩行末尾指回合約注意事項（「)(註四)」/「；註五)」）。
+/// 號碼不固定（取決於該份報價單實際印出哪幾條備註），所以 QCM 只宣告「引用誰、怎麼寫」，
+/// 號碼由呼叫端（OC `GetContractNotes` → `ContractNoteNumbering`）算出來餵進 `render`。
+@Suite("附加服務的註號引用")
+struct AdditionalServiceNoteReferenceTests {
+
+    private static func format(of item: ServiceItem) -> AdditionalServiceNameFormat {
+        guard case let .embedsPrice(format) = item.additionalServiceNameStrategy else {
+            Issue.record("\(item.type) 不是 .embedsPrice")
+            return .init(template: "", requiresCount: false)
+        }
+        return format
+    }
+
+    @Test("CTP：括號外另開一個括號寫註號")
+    func ctpReference() {
+        let format = Self.format(of: .ctp)
+        #expect(format.noteReference?.contractNoteUniqueCode == "1")
+        #expect(
+            format.render(price: 2000, count: nil, noteNumber: "四")
+                == "代辦年度CTP申報(每年3月；加收2仟元/家)(註四)"
+        )
+    }
+
+    @Test("補充保費：註號寫在括號內，用分號接")
+    func supplementaryPremiumReference() {
+        let format = Self.format(of: .assistanceAnnualSupplementaryPremiumDeductionDetailsReporting)
+        #expect(format.noteReference?.contractNoteUniqueCode == "7")
+        #expect(
+            format.render(price: 2000, count: nil, noteNumber: "五")
+                == "代辦年度補充保費扣費明細彙報(每年1月；加收2仟元/家；註五)"
+        )
+    }
+
+    /// 算不出註號時整段引用消失，而不是印出「(註)」這種殘缺的東西 ——
+    /// 所以兩個 template 都必須讓「沒有引用」的版本自己讀得通（補充保費的右括號留在 template 裡）。
+    @Test("沒有註號時引用整段消失，句子仍讀得通")
+    func omitsReferenceWithoutNumber() {
+        #expect(
+            Self.format(of: .ctp).render(price: 2000, count: nil)
+                == "代辦年度CTP申報(每年3月；加收2仟元/家)"
+        )
+        #expect(
+            Self.format(of: .assistanceAnnualSupplementaryPremiumDeductionDetailsReporting)
+                .render(price: 2000, count: nil)
+                == "代辦年度補充保費扣費明細彙報(每年1月；加收2仟元/家)"
+        )
+    }
+
+    /// 沒宣告 `noteReference` 的 format 給了號碼也不該憑空長出引用。
+    @Test("未宣告引用的 format 給號碼也不印")
+    func ignoresNumberWithoutDeclaredReference() {
+        let format = AdditionalServiceNameFormat(template: "加收{price}元{noteRef}", requiresCount: false)
+        #expect(format.render(price: 800, count: nil, noteNumber: "三") == "加收8佰元")
+    }
+
+    /// 宣告了引用，被引用的 uniqueCode 就得真的存在於 `ContractNoteManager`，
+    /// 否則 OC 永遠查不到號碼、引用永遠不印，而且不會有任何錯誤。
+    @Test("所有 noteReference 指到的 uniqueCode 都存在且未 deprecated")
+    func referencedNotesExist() {
+        var checked = 0
+        for item in QuotingContentManager.standard.serviceItems {
+            guard
+                case let .embedsPrice(format) = item.additionalServiceNameStrategy,
+                let reference = format.noteReference
+            else { continue }
+            checked += 1
+            #expect(
+                QuotingContentManager.standard.getNote(uniqueCode: reference.contractNoteUniqueCode) != nil,
+                "\(item.type) 引用的備註 uniqueCode \(reference.contractNoteUniqueCode) 不存在"
+            )
+        }
+        #expect(checked == 2, "目前只有 CTP 與補充保費兩條有註號引用，實得 \(checked)")
+    }
+
+    /// 有引用的 template 一定要留 `{noteRef}` 的位置，否則號碼算出來也插不進去。
+    @Test("宣告了 noteReference 的 template 必含 {noteRef}")
+    func templatesCarryPlaceholder() {
+        for item in QuotingContentManager.standard.serviceItems {
+            guard
+                case let .embedsPrice(format) = item.additionalServiceNameStrategy,
+                format.noteReference != nil
+            else { continue }
+            #expect(format.template.contains("{noteRef}"), "\(item.type) 宣告了引用卻沒有 {noteRef}")
+        }
+    }
+}
+
+/// 編號群組：備註自己不寫號碼，只宣告「我屬於哪個要連號的群組」。
+@Suite("ContractNoteInfo.OptionGroup")
+struct ContractNoteOptionGroupTests {
+
+    @Test("附加服務選項的前綴用字")
+    func additionalServicePrefix() {
+        #expect(ContractNoteInfo.OptionGroup.additionalService.prefix(number: 1) == "附加服務選項1：")
+        #expect(ContractNoteInfo.OptionGroup.additionalService.prefix(number: 2) == "附加服務選項2：")
+    }
+
+    /// 掛群組的備註內文**不可以**自己寫「附加服務選項N：」——改版前就是寫死在文案裡，
+    /// 隱藏 CTP 之後剩下的那條仍自稱「選項2」。號碼只能由讀取端依最終清單算。
+    @Test("掛了群組的備註內文不自帶序號前綴")
+    func groupedNotesDoNotHardcodeNumbers() {
+        var checked = 0
+        for note in QuotingContentManager.standard.contractNoteManager.notes {
+            guard note.optionGroup != nil else { continue }
+            checked += 1
+            #expect(!note.fullContent.contains("附加服務選項"), "備註 \(note.uniqueCode) 的內文自己寫了序號")
+        }
+        #expect(checked == 2, "目前只有 CTP 與補充保費兩條備註掛群組，實得 \(checked)")
+    }
+
+    /// 反向釘住：有註號引用的附加服務，它引用的那條備註一定也要掛在編號群組裡
+    /// （母版上這兩條就是同意函上那兩個「附加服務選項」）。
+    @Test("被引用的備註都掛在附加服務群組")
+    func referencedNotesAreGrouped() {
+        for item in QuotingContentManager.standard.serviceItems {
+            guard
+                case let .embedsPrice(format) = item.additionalServiceNameStrategy,
+                let reference = format.noteReference
+            else { continue }
+            let note = QuotingContentManager.standard.getNote(uniqueCode: reference.contractNoteUniqueCode)
+            #expect(note?.optionGroup == .additionalService, "\(item.type) 引用的備註沒掛附加服務群組")
+        }
+    }
+}
