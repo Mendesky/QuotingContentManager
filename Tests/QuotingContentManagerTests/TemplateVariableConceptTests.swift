@@ -30,7 +30,7 @@ struct TemplateVariableConceptTests {
     @Test("合約備註內的 placeholder 皆為已登記 concept")
     func contractNotePlaceholdersAreKnownConcepts() {
         for note in QuotingContentManager.standard.contractNoteManager.notes {
-            assertPlaceholders(in: note.content, where: "contractNote uniqueCode=\(note.uniqueCode)")
+            assertPlaceholders(in: note.fullContent, where: "contractNote uniqueCode=\(note.uniqueCode)")
         }
     }
 

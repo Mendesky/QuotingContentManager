@@ -26,7 +26,7 @@ public struct PaymentItemManager: Sendable {
         ),
         .init(
             uniqueCode: "3",
-            content: "\(TemplateVariableConcept.accountingWorkName.placeholder())處理作業依照預估年營收計\(TemplateVariableConcept.estimatedAnnualRevenue.placeholder())報價。",
+            content: "\(TemplateVariableConcept.accountingWorkName.placeholder())作業依照預估年營收計\(TemplateVariableConcept.estimatedAnnualRevenue.placeholder())報價。",
             traits: ["ServiceItem/Accounting"]
         ),
     ]
