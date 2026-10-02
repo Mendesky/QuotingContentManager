@@ -40,24 +40,24 @@ public struct WorkItem: Codable, Sendable, Equatable {
 
     /// 該帳別要印的內文。`noteNumber` 給值時填入 `{noteRef}`，算不出註號時整段引用消失
     /// （見 `ContractNoteReference.substitute`）。
-    public func displayContent(forTaxAccount isTaxAccount: Bool, noteNumber: String? = nil) -> String {
-        let text = isTaxAccount ? (taxAccountContent ?? content) : content
+    public func displayContent(for accountingCategory: AccountingCategory?, noteNumber: String? = nil) -> String {
+        let text = accountingCategory.pick(standard: content, taxAccount: taxAccountContent)
         return ContractNoteReference.substitute(in: text, reference: noteReference, noteNumber: noteNumber)
     }
 
-    public func isVisibleInServiceScope(forTaxAccount isTaxAccount: Bool) -> Bool {
+    public func isVisibleInServiceScope(for accountingCategory: AccountingCategory?) -> Bool {
         switch serviceScopeVisibility {
-        case .both:          true
-        case .standardOnly:  !isTaxAccount
-        case .taxAccountOnly: isTaxAccount
-        case .hidden:        false
+        case .both:           true
+        case .standardOnly:   !accountingCategory.usesTaxAccountCopy
+        case .taxAccountOnly: accountingCategory.usesTaxAccountCopy
+        case .hidden:         false
         }
     }
 
     public enum ServiceScopeVisibility: String, Codable, Sendable, Equatable {
         /// 兩個帳別都印（預設）。
         case both
-        /// 只有一套帳（會計帳）印；稅務帳不印。
+        /// 只有印一般版文案的帳別印；稅務帳不印（哪些帳別算一般版見 `usesTaxAccountCopy`）。
         case standardOnly
         /// 只有稅務帳印。
         case taxAccountOnly

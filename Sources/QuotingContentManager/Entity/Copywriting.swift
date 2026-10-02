@@ -21,7 +21,7 @@ public struct Copywriting: Codable, Sendable {
         self.taxAccountContent = taxAccountContent
     }
 
-    public func displayContent(forTaxAccount isTaxAccount: Bool) -> String {
-        isTaxAccount ? (taxAccountContent ?? content) : content
+    public func displayContent(for accountingCategory: AccountingCategory?) -> String {
+        accountingCategory.pick(standard: content, taxAccount: taxAccountContent)
     }
 }

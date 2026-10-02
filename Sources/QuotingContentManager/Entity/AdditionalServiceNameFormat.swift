@@ -23,8 +23,8 @@ public struct AdditionalServiceNameFormat: Codable, Sendable, Equatable {
     ///   因此 template 要讓「沒有引用」的版本自己讀得通（例如補充保費的 `)` 留在 template 裡）。
     public func render(price: Decimal, count: Int?, noteNumber: String? = nil) -> String {
         let withValues = template
-            .replacingOccurrences(of: "{price}", with: Self.formatPrice(price))
-            .replacingOccurrences(of: "{count}", with: count.map(String.init) ?? "")
+            .replacingOccurrences(of: ContentPlaceholder.price.rawValue, with: Self.formatPrice(price))
+            .replacingOccurrences(of: ContentPlaceholder.count.rawValue, with: count.map(String.init) ?? "")
         return ContractNoteReference.substitute(in: withValues, reference: noteReference, noteNumber: noteNumber)
     }
 

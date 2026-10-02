@@ -23,8 +23,8 @@ public extension BusinessClientAssistanceManager {
             self.traits = traits
         }
 
-        public func displayContent(forTaxAccount isTaxAccount: Bool) -> String {
-            isTaxAccount ? (taxAccountContent ?? content) : content
+        public func displayContent(for accountingCategory: AccountingCategory?) -> String {
+            accountingCategory.pick(standard: content, taxAccount: taxAccountContent)
         }
 
         package func isSubsetOf(tags: [String]) -> Bool {

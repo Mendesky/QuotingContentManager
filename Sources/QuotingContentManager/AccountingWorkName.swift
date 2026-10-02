@@ -8,12 +8,7 @@ extension QuotingContentManager {
     /// 這組值是唯一能讓上述四句共用同一份 template 的選擇。其餘三處（contractHeader、
     /// 協助事項③、rightsAndObligations）母版的稅務帳／一套帳句型本身不同（不只是名詞不同），
     /// 一個變數表達不了，改以各自的帳別變體承載，不走這個變數。
-    public func accountingWorkDisplayName(forAccountingType rawValue: String) -> String {
-        switch rawValue {
-        case "taxAccount":
-            return "稅務申報服務"
-        default:
-            return "帳務整理"
-        }
+    public func accountingWorkDisplayName(for accountingCategory: AccountingCategory?) -> String {
+        accountingCategory.pick(standard: "帳務整理", taxAccount: "稅務申報服務")
     }
 }

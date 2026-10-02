@@ -20,7 +20,7 @@ public struct ContractNoteReference: Codable, Sendable, Equatable {
     }
 
     public func render(noteNumber: String) -> String {
-        template.replacingOccurrences(of: "{noteNo}", with: noteNumber)
+        template.replacingOccurrences(of: ContentPlaceholder.noteNo.rawValue, with: noteNumber)
     }
 
     /// 把 `text` 裡的 `{noteRef}` 換成引用；`noteNumber` 為 nil（算不出註號）時換成空字串。
@@ -30,6 +30,6 @@ public struct ContractNoteReference: Codable, Sendable, Equatable {
     /// 所以每個帶 `{noteRef}` 的文案都要讓「沒有引用」的版本自己讀得通。
     public static func substitute(in text: String, reference: ContractNoteReference?, noteNumber: String?) -> String {
         let rendered = noteNumber.flatMap { reference?.render(noteNumber: $0) } ?? ""
-        return text.replacingOccurrences(of: "{noteRef}", with: rendered)
+        return text.replacingOccurrences(of: ContentPlaceholder.noteRef.rawValue, with: rendered)
     }
 }
