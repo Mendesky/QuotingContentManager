@@ -18,7 +18,7 @@ struct ContractNoteManagerRegistrationNote1Tests {
 
     @Test("備註一內容含四個範本變數（組織型態、登記/實收資本額 exact、地區、股東）")
     func note15ContainsPlaceholders() {
-        let content = notes.first { $0.uniqueCode == "15" }?.fullContent ?? ""
+        let content = notes.first { $0.uniqueCode == "15" }?.allSegmentsJoined ?? ""
         #expect(content.contains("%OrganizationTypeName%"))
         #expect(content.contains("%Capital|exact%"))
         // 不再併排實收／登記兩個 token（依組織型態二擇一靠空字串隱藏，編輯器會露出灰底 [Key]）
@@ -52,7 +52,7 @@ struct ContractNoteManagerRegistrationNote2Tests {
     @Test("備註 3 第一行含投審司、動資查核、工廠及特許項目字樣")
     func note3ExpandedExclusions() {
         let note3 = ContractNoteManager().notes.first { $0.uniqueCode == "3" }
-        let content = note3?.fullContent ?? ""
+        let content = note3?.allSegmentsJoined ?? ""
         #expect(content.contains("投審司"))
         #expect(content.contains("動資查核"))
         #expect(content.contains("工廠及特許項目"))

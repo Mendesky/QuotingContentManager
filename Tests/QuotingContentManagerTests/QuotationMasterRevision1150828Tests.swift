@@ -54,8 +54,8 @@ struct QuotationMasterRevision1150828Tests {
         #expect(expanded(supplementary, forTaxAccount: true).hasPrefix("稅務申報服務作業依照預估年營收計"))
         #expect(expanded(supplementary, forTaxAccount: false).hasPrefix("帳務整理作業依照預估年營收計"))
 
-        // 記帳的付款條件已併進註二，用 fullContent 取整條來驗用字。
-        let paymentNote = try #require(qcm.getNote(uniqueCode: "17")).fullContent
+        // 記帳的付款條件已併進註二，用 allSegmentsJoined 取整條來驗用字。
+        let paymentNote = try #require(qcm.getNote(uniqueCode: "17")).allSegmentsJoined
         #expect(expanded(paymentNote, forTaxAccount: true).contains("稅務申報服務作業費用"))
         #expect(expanded(paymentNote, forTaxAccount: false).contains("帳務整理作業費用"))
         #expect(!paymentNote.contains("處理作業費用"))
@@ -178,7 +178,7 @@ struct QuotationMasterRevision1150828Tests {
     @Test("削價註已移除")
     func priceUndercuttingNoteRemoved() {
         #expect(qcm.getNote(uniqueCode: "5") == nil)
-        #expect(!qcm.contractNoteManager.notes.contains { $0.fullContent.contains("不以不正當之削價方式") })
+        #expect(!qcm.contractNoteManager.notes.contains { $0.allSegmentsJoined.contains("不以不正當之削價方式") })
     }
 
     /// 母版上這兩條備註是以「附加服務選項1：」「附加服務選項2：」開頭的，但**序號不寫在這裡** ——
@@ -188,20 +188,20 @@ struct QuotationMasterRevision1150828Tests {
     func additionalServiceNotes() throws {
         let ctp = try #require(qcm.getNote(uniqueCode: "1"))
         #expect(ctp.optionGroup == .additionalService)
-        #expect(ctp.fullContent.hasPrefix("代辦年度CTP申報"))
-        #expect(ctp.fullContent.contains("依據公司法第22條之1"))
-        #expect(!ctp.fullContent.contains("增訂"))
-        #expect(ctp.fullContent.contains("(董事、監察及經理人)"))
+        #expect(ctp.allSegmentsJoined.hasPrefix("代辦年度CTP申報"))
+        #expect(ctp.allSegmentsJoined.contains("依據公司法第22條之1"))
+        #expect(!ctp.allSegmentsJoined.contains("增訂"))
+        #expect(ctp.allSegmentsJoined.contains("(董事、監察及經理人)"))
 
         let premium = try #require(qcm.getNote(uniqueCode: "7"))
         #expect(premium.optionGroup == .additionalService)
-        #expect(premium.fullContent.hasPrefix("依全民健康保險扣取"))
+        #expect(premium.allSegmentsJoined.hasPrefix("依全民健康保險扣取"))
     }
 
     @Test("稅簽優點第 3 點改成電腦選案比率")
     func taxAuditBenefitNote() throws {
         for code in ["12", "13"] {
-            let note = try #require(qcm.getNote(uniqueCode: code)).fullContent
+            let note = try #require(qcm.getNote(uniqueCode: code)).allSegmentsJoined
             #expect(note.contains("3.降低國稅局電腦選案比率，"))
             #expect(!note.contains("抽查查帳比率"))
         }
@@ -209,7 +209,7 @@ struct QuotationMasterRevision1150828Tests {
 
     @Test("最新稅務訊息註加上「(除特定專案外)」")
     func taxNewsNote() throws {
-        let note = try #require(qcm.getNote(uniqueCode: "2")).fullContent
+        let note = try #require(qcm.getNote(uniqueCode: "2")).allSegmentsJoined
         #expect(note.contains("教育訓練課程(除特定專案外)，"))
     }
 
