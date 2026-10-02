@@ -1,7 +1,7 @@
 /// PaymentItem 顯示名稱模板。
 ///
 /// `template` 含兩種替換語法：
-/// - `{name}` — 由 caller 端 substitute，通常代入 `serviceItem.displayName(forTaxAccount:)`
+/// - `{name}` — 由 caller 端 substitute，通常代入 `serviceItem.displayName(for:)`
 /// - `%PlaceholderKey%` — 留給 frontend 依 `GetTemplateVariables` API 回傳的 variables multi-pass 展開
 ///
 /// 範例：
@@ -18,6 +18,6 @@ public struct PaymentItemNameFormat: Codable, Sendable, Equatable {
 
     /// 將 `{name}` 替換為實際 service item 顯示名稱。`%xxx%` placeholder 保留交由 frontend 展開。
     public func resolve(name: String) -> String {
-        template.replacingOccurrences(of: "{name}", with: name)
+        template.replacingOccurrences(of: ContentPlaceholder.name.rawValue, with: name)
     }
 }

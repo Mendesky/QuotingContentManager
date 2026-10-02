@@ -85,3 +85,41 @@ struct MasterTemplateTests {
         #expect(manager.purpose.content.contains("有關"))
     }
 }
+
+
+/// 目錄層級的規則（理由見 `ContractNoteManager` 的型別說明）。
+@Suite("ContractNoteManager — uniqueCode 規則")
+struct ContractNoteManagerUniqueCodeTests {
+
+    private let notes = ContractNoteManager().notes
+
+    /// 同步程式以 uniqueCode 認備註，重複的話兩條會被當成同一條。
+    @Test("uniqueCode 不重複（含 deprecated）")
+    func uniqueCodesAreUnique() {
+        let codes = notes.map(\.uniqueCode)
+        #expect(codes.count == Set(codes).count, "重複的 uniqueCode：\(codes.filter { code in codes.filter { $0 == code }.count > 1 })")
+    }
+
+    /// 刪除過的 code 若再被用，既有報價單上的舊備註會被當成新備註處理。
+    @Test("退場的 uniqueCode 不得再出現在目錄裡")
+    func retiredUniqueCodesAreNotReused() {
+        let reused = ContractNoteManager.retiredUniqueCodes.intersection(notes.map(\.uniqueCode))
+        #expect(reused.isEmpty, "退場的 uniqueCode 被重用：\(reused.sorted())")
+    }
+
+    /// deprecated 的備註只是佔著 code、供同步程式辨識；任何查詢都不該帶出它。
+    @Test("deprecated 的備註不會被任何查詢帶出")
+    func deprecatedNotesAreNeverFetched() {
+        let qcm = QuotingContentManager.standard
+        let deprecatedCodes = Set(notes.filter(\.deprecated).map(\.uniqueCode))
+        #expect(!deprecatedCodes.isEmpty, "fixture 前提：目前有 deprecated 的備註")
+
+        let everyTag = notes.flatMap { $0.traits.flatMap { Array($0.tags) } }
+        let fetched = Set(qcm.fetchNotes(subsetOf: everyTag).map(\.uniqueCode))
+            .union(qcm.fetchNotes(symmetricDifference: []).map(\.uniqueCode))
+        #expect(fetched.isDisjoint(with: deprecatedCodes))
+        for code in deprecatedCodes {
+            #expect(qcm.getNote(uniqueCode: code) == nil, "\(code)")
+        }
+    }
+}

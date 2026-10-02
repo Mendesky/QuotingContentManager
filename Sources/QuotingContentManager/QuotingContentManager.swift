@@ -181,11 +181,11 @@ extension QuotingContentManager {
             .init(title: "權利義務事項", provisions: [
                 .init(
                     "本事務所提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業服務將依據　貴公司所提供之資料及文件，利用會計專業知識整理、分類及彙總資訊，進而提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業服務項目，本事務所對資料並無查核或核閱義務，本事務所僅係依 貴公司所提供之資訊完成\(TemplateVariableConcept.accountingWorkName.placeholder())作業服務。",
-                    taxAccount: "本事務所提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業將依據　貴公司所提供之資料及文件，利用會計專業知識整理、分類及彙總資訊，進而提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業，本事務所對資料並無查核或核閱義務，本事務所僅係依 貴公司所提供之資訊完成\(TemplateVariableConcept.accountingWorkName.placeholder())作業。"
+                    taxAccountContent: "本事務所提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業將依據　貴公司所提供之資料及文件，利用會計專業知識整理、分類及彙總資訊，進而提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業，本事務所對資料並無查核或核閱義務，本事務所僅係依 貴公司所提供之資訊完成\(TemplateVariableConcept.accountingWorkName.placeholder())作業。"
                 ),
                 .init(
                     "本事務所所提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業服務，僅係依 貴公司提供之文件與資料分類及彙總，並僅限協助　貴公司為\(TemplateVariableConcept.accountingWorkName.placeholder())作業服務使用。\n貴公司應確保資料合法性及完整性，除本事務所彙總有過失之情形外，如本事務所於本報價單意旨提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業服務事項，而遭致第三人向本事務所為法律上之主張而致生損害時，貴公司同意負責補償該損害。另未經本事務所書面同意，本事務所所提供之服務不得提供他人使用；且若有此種情形致他人權益受損，本事務所不負任何責任。",
-                    taxAccount: "本事務所所提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業，僅係依 貴公司提供之文件與資料分類及彙總，並僅限協助　貴公司為\(TemplateVariableConcept.accountingWorkName.placeholder())作業使用。\n貴公司應確保資料合法性及完整性，除本事務所彙總有過失之情形外，如本事務所於本報價單意旨提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業，而遭致第三人向本事務所為法律上之主張而致生損害時，貴公司同意負責補償該損害。另未經本事務所書面同意，本事務所所提供之服務不得提供他人使用；且若有此種情形致他人權益受損，本事務所不負任何責任。"
+                    taxAccountContent: "本事務所所提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業，僅係依 貴公司提供之文件與資料分類及彙總，並僅限協助　貴公司為\(TemplateVariableConcept.accountingWorkName.placeholder())作業使用。\n貴公司應確保資料合法性及完整性，除本事務所彙總有過失之情形外，如本事務所於本報價單意旨提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業，而遭致第三人向本事務所為法律上之主張而致生損害時，貴公司同意負責補償該損害。另未經本事務所書面同意，本事務所所提供之服務不得提供他人使用；且若有此種情形致他人權益受損，本事務所不負任何責任。"
                 ),
                 "本事務所對　貴公司所提供之各項資料或相關文件，當盡保密之責。",
             ])
@@ -201,7 +201,7 @@ extension QuotingContentManager {
                 "在本報價單所載之工作服務期間，任何一方可提前三個月要求終止服務或終止雙方之委任關係，惟 貴公司仍應支付本事務所已完成工作之服務費用。貴公司同意於雙方之委任關係終止後15日內，不經本事務所催告即應對本事務所清償所有 貴公司應付之費用。",
                 .init(
                     "貴公司或 貴公司之代理人或使用人所提供之文件將暫存於本事務所處，本事務所將依本事務所當時之正常文件管理方式保管之。本事務所得於每年度終了或特定服務完成後，返還本事務所為 貴公司所留存之文件。於 貴公司請求返還之情形下，本事務所將於收訖 貴公司應給付之全部費用後，儘速返還本事務所為 貴公司所留存之文件。除前述 貴公司交付之文件資料外，本事務所得留存相關文件影本、紀錄，包括草稿、筆記、利害衝突確認紀錄、帳務及財務資訊、內部紀錄及其他工作成果，除依法應保存之文件、紀錄或資訊外，本事務所得於委任關係終止或特定服務履行完成後，銷毀或以其他方式處分該等文件、紀錄或資訊。\n有關本報價單所生之相關爭議，均應以中華民國法令為準據法。",
-                    taxAccount: "貴公司或 貴公司之代理人或使用人所提供之文件將暫存於本事務所處，本事務所將依本事務所當時之正常文件管理方式保管之。本事務所得於每年度終了或特定服務完成後，返還本事務所為 貴公司所留存之文件。於 貴公司請求返還之情形下，本事務所將於收訖 貴公司應給付之全部費用後，儘速返還本事務所為 貴公司所留存之文件。除前述 貴公司交付之文件資料外，本事務所得留存相關文件影本、紀錄，包括草稿、筆記、利害衝突確認紀錄、稅務申報資訊、內部紀錄及其他工作成果，除依法應保存之文件、紀錄或資訊外，本事務所得於委任關係終止或特定服務履行完成後，銷毀或以其他方式處分該等文件、紀錄或資訊。\n有關本報價單所生之相關爭議，均應以中華民國法令為準據法。"
+                    taxAccountContent: "貴公司或 貴公司之代理人或使用人所提供之文件將暫存於本事務所處，本事務所將依本事務所當時之正常文件管理方式保管之。本事務所得於每年度終了或特定服務完成後，返還本事務所為 貴公司所留存之文件。於 貴公司請求返還之情形下，本事務所將於收訖 貴公司應給付之全部費用後，儘速返還本事務所為 貴公司所留存之文件。除前述 貴公司交付之文件資料外，本事務所得留存相關文件影本、紀錄，包括草稿、筆記、利害衝突確認紀錄、稅務申報資訊、內部紀錄及其他工作成果，除依法應保存之文件、紀錄或資訊外，本事務所得於委任關係終止或特定服務履行完成後，銷毀或以其他方式處分該等文件、紀錄或資訊。\n有關本報價單所生之相關爭議，均應以中華民國法令為準據法。"
                 ),
             ])
         }

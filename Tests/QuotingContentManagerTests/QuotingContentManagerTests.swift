@@ -34,8 +34,8 @@ import Testing
 // `%ProfitseekingEnterpriseIncomeTaxFiling%` 變數本身仍留在系統裡，只是這個 format 不再引用。
 @Test func `accounting paymentItemName drops filing method segment`() async throws {
     let item = ServiceItem.accounting
-    #expect(item.paymentItemName(forTaxAccount: true) == "稅務申報服務作業%AccountingStart%")
-    #expect(item.paymentItemName(forTaxAccount: false) == "帳務整理作業%AccountingStart%")
+    #expect(item.paymentItemName(for: .taxAccount) == "稅務申報服務作業%AccountingStart%")
+    #expect(item.paymentItemName(for: .financialAccount) == "帳務整理作業%AccountingStart%")
     #expect(item.paymentItemNameFormat?.template.contains("ProfitseekingEnterpriseIncomeTaxFiling") == false)
 }
 
@@ -48,8 +48,8 @@ import Testing
     #expect(item.tags == ["ServiceItem/ProvisionalIncomeTaxAudit"])
     #expect(item.workItems.map(\.type) == ["provisionalIncomeTaxReturnFiling"])
     #expect(item.workItems.first?.content == "年度中暫繳申報")
-    #expect(item.effectiveScopeTerms(forTaxAccount: false).isEmpty)
-    #expect(item.effectiveScopeTerms(forTaxAccount: true).isEmpty)
-    #expect(item.paymentItemName(forTaxAccount: false) == "%ProvisionalIncomeTaxAuditStartYear%之暫繳簽證")
-    #expect(item.paymentItemName(forTaxAccount: true) == "%ProvisionalIncomeTaxAuditStartYear%之暫繳簽證")  // 無 taxAccountName，兩者同
+    #expect(item.effectiveScopeTerms(for: .financialAccount).isEmpty)
+    #expect(item.effectiveScopeTerms(for: .taxAccount).isEmpty)
+    #expect(item.paymentItemName(for: .financialAccount) == "%ProvisionalIncomeTaxAuditStartYear%之暫繳簽證")
+    #expect(item.paymentItemName(for: .taxAccount) == "%ProvisionalIncomeTaxAuditStartYear%之暫繳簽證")  // 無 taxAccountName，兩者同
 }

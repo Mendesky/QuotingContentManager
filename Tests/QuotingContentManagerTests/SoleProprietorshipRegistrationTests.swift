@@ -63,7 +63,7 @@ struct SoleProprietorshipContractNoteTests {
     func note17Content() {
         let note = manager.getNote(uniqueCode: "17")
         #expect(note?.weight == 67)
-        #expect(note?.content == "工商登記處理作業：%SoleProprietorshipOrPartnershipName%、%Capital|exact%、%CompanyRegistrationRegion%、%CompanyRegistrationShareholder%。")
+        #expect(note?.allSegmentsJoined == "工商登記處理作業：%SoleProprietorshipOrPartnershipName%、%Capital|exact%、%CompanyRegistrationRegion%、%CompanyRegistrationShareholder%。")
         #expect(note?.traits.first?.tags == ["ServiceItem/CompanyRegistration", "OrganizationType/soleProprietorshipOrPartnership"])
         // trait 仍含 ServiceItem/ 前綴 tag —— OC ContractNoteSynchronizer 的 stale 清理只處理這類 uniqueCode。
         #expect(note?.traits.contains { $0.tags.contains { $0.hasPrefix("ServiceItem/") } } == true)
@@ -73,16 +73,16 @@ struct SoleProprietorshipContractNoteTests {
     func note18Content() {
         let note = manager.getNote(uniqueCode: "18")
         #expect(note?.weight == 66)
-        #expect(note?.content == "工商登記費用不包含政府規費、投審司（外國人）、工廠及特許項目之登記及代墊之什項費用(依其收據請款)，服務公費及代墊費用請於辦理完成時支付。")
-        #expect(note?.content.contains("動資查核") == false)
-        #expect(note?.content.contains("股東超過5人") == false)
+        #expect(note?.allSegmentsJoined == "工商登記費用不包含政府規費、投審司（外國人）、工廠及特許項目之登記及代墊之什項費用(依其收據請款)，服務公費及代墊費用請於辦理完成時支付。")
+        #expect(note?.allSegmentsJoined.contains("動資查核") == false)
+        #expect(note?.allSegmentsJoined.contains("股東超過5人") == false)
         #expect(note?.traits.first?.tags == ["ServiceItem/CompanyRegistration", "OrganizationType/soleProprietorshipOrPartnership"])
     }
 
     @Test("公司版 3、15 內容不變，trait 排除行號 tag")
     func companyNotesUnchangedButExcludeSoleProprietorship() {
         let note3 = manager.getNote(uniqueCode: "3")
-        #expect(note3?.content == """
+        #expect(note3?.allSegmentsJoined == """
         工商登記費用不包含政府規費、投審司（外國人）、動資查核、工廠及特許項目之登記及代墊之什項費用(依其收據請款)，服務公費及代墊費用請於辦理完成時支付。
         如股東超過5人，第6位起每位加收新台幣500元之防制洗錢查核費。
         """)
@@ -91,7 +91,7 @@ struct SoleProprietorshipContractNoteTests {
         #expect(note3?.traits.first?.excluded == ["OrganizationType/soleProprietorshipOrPartnership"])
 
         let note15 = manager.getNote(uniqueCode: "15")
-        #expect(note15?.content == "工商登記處理作業：%OrganizationTypeName%、%Capital|exact%、%CompanyRegistrationRegion%、%CompanyRegistrationShareholder%。")
+        #expect(note15?.allSegmentsJoined == "工商登記處理作業：%OrganizationTypeName%、%Capital|exact%、%CompanyRegistrationRegion%、%CompanyRegistrationShareholder%。")
         #expect(note15?.weight == 67)
         #expect(note15?.traits.first?.tags == ["ServiceItem/CompanyRegistration"])
         #expect(note15?.traits.first?.excluded == ["OrganizationType/soleProprietorshipOrPartnership"])
@@ -121,27 +121,27 @@ struct SoleProprietorshipWorkItemContentTests {
     func reservationContent() {
         let reservation = workItem("companyNameAndBusinessScopeReservation")
         #expect(reservation?.content == "公司名稱預查")
-        #expect(reservation?.displayContent(forTaxAccount: false, organizationType: .soleProprietorshipOrPartnership) == "商業登記名稱預查")
+        #expect(reservation?.displayContent(for: .financialAccount, organizationType: .soleProprietorshipOrPartnership) == "商業登記名稱預查")
         for type in OrganizationType.allCases where type != .soleProprietorshipOrPartnership {
-            #expect(reservation?.displayContent(forTaxAccount: false, organizationType: type) == "公司名稱預查")
+            #expect(reservation?.displayContent(for: .financialAccount, organizationType: type) == "公司名稱預查")
         }
-        #expect(reservation?.displayContent(forTaxAccount: false, organizationType: nil) == "公司名稱預查")
+        #expect(reservation?.displayContent(for: .financialAccount, organizationType: nil) == "公司名稱預查")
     }
 
     @Test("B 公司設立登記：行號顯示「商業設立登記」，其他型態不變")
     func registrationContent() {
         let registration = workItem("economicMinistryRegistration")
         #expect(registration?.content == "公司設立登記")
-        #expect(registration?.displayContent(forTaxAccount: false, organizationType: .soleProprietorshipOrPartnership) == "商業設立登記")
+        #expect(registration?.displayContent(for: .financialAccount, organizationType: .soleProprietorshipOrPartnership) == "商業設立登記")
         for type in OrganizationType.allCases where type != .soleProprietorshipOrPartnership {
-            #expect(registration?.displayContent(forTaxAccount: false, organizationType: type) == "公司設立登記")
+            #expect(registration?.displayContent(for: .financialAccount, organizationType: type) == "公司設立登記")
         }
     }
 
     @Test("只有 A、B 有行號專用內容，其餘工作項目行號與公司同字")
     func onlyReservationAndRegistrationDiverge() {
         let divergent = item.workItems.filter {
-            $0.displayContent(forTaxAccount: false, organizationType: .soleProprietorshipOrPartnership) != $0.content
+            $0.displayContent(for: .financialAccount, organizationType: .soleProprietorshipOrPartnership) != $0.content
         }.map(\.type)
         #expect(divergent == ["companyNameAndBusinessScopeReservation", "economicMinistryRegistration"])
     }
@@ -158,12 +158,12 @@ struct SoleProprietorshipWorkItemContentTests {
         #expect(workItem("smallScaleUniformInvoiceExemption")?.content == "申請小規模免用統一發票")
     }
 
-    @Test("帳別版 displayContent(forTaxAccount:) 行為不變（記帳卡稅務帳）")
+    @Test("帳別版 displayContent(for:) 行為不變（記帳卡稅務帳）")
     func taxAccountContentUnchanged() {
         let accounting = ServiceItem.accounting.workItems.first { $0.type == "accounting" }
-        #expect(accounting?.displayContent(forTaxAccount: true) == "平時稅務帳務作業")
-        #expect(accounting?.displayContent(forTaxAccount: true, organizationType: .soleProprietorshipOrPartnership) == "平時稅務帳務作業")
-        #expect(accounting?.displayContent(forTaxAccount: false, organizationType: .soleProprietorshipOrPartnership) == "平時會計帳務作業")
+        #expect(accounting?.displayContent(for: .taxAccount) == "平時稅務帳務作業")
+        #expect(accounting?.displayContent(for: .taxAccount, organizationType: .soleProprietorshipOrPartnership) == "平時稅務帳務作業")
+        #expect(accounting?.displayContent(for: .financialAccount, organizationType: .soleProprietorshipOrPartnership) == "平時會計帳務作業")
     }
 
     @Test("QuotingContentManager.getWorkItem 取得新子項")

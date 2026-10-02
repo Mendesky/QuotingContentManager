@@ -77,11 +77,12 @@ public struct ServiceItem: Codable, Sendable {
     /// 標題與內文都取該帳別的版本。兩者皆無 → 空陣列（渲染端只印標題那一行）。
     ///
     /// 記帳卡在一套帳是刻意回空的——1150828 母版把一套帳的前言整句劃掉了。
-    public func effectiveScopeTerms(forTaxAccount isTaxAccount: Bool) -> [ScopeTerm] {
+    public func effectiveScopeTerms(for accountingCategory: AccountingCategory?) -> [ScopeTerm] {
         if !scopeTerms.isEmpty { return scopeTerms }
-        let effectiveTerm = isTaxAccount ? (taxAccountTerm ?? term) : term
+        // 不走 `pick`：`term` 本身可以是 nil（一套帳刻意沒有前言），兩邊都可能缺。
+        let effectiveTerm = accountingCategory.usesTaxAccountCopy ? (taxAccountTerm ?? term) : term
         if let effectiveTerm {
-            return [.init(name: displayName(forTaxAccount: isTaxAccount), content: effectiveTerm)]
+            return [.init(name: displayName(for: accountingCategory), content: effectiveTerm)]
         }
         return []
     }
@@ -94,15 +95,15 @@ public struct ServiceItem: Codable, Sendable {
         workItems.contains { $0.type == workItemType }
     }
 
-    public func displayName(forTaxAccount isTaxAccount: Bool) -> String {
-        isTaxAccount ? (taxAccountName ?? name) : name
+    public func displayName(for accountingCategory: AccountingCategory?) -> String {
+        accountingCategory.pick(standard: name, taxAccount: taxAccountName)
     }
 
-    /// 結合 `displayName(forTaxAccount:)` 與 `paymentItemNameFormat.template` 算出 paymentItem 顯示名稱。
+    /// 結合 `displayName(for:)` 與 `paymentItemNameFormat.template` 算出 paymentItem 顯示名稱。
     /// `{name}` 由本 method 替換為 displayName；`%xxx%` placeholder 保留交由 frontend 展開。
     /// 若 serviceItem 沒有設定 `paymentItemNameFormat`，回 nil（caller 端 fallback 為 displayName 即可）。
-    public func paymentItemName(forTaxAccount isTaxAccount: Bool) -> String? {
-        paymentItemNameFormat?.resolve(name: displayName(forTaxAccount: isTaxAccount))
+    public func paymentItemName(for accountingCategory: AccountingCategory?) -> String? {
+        paymentItemNameFormat?.resolve(name: displayName(for: accountingCategory))
     }
 
 

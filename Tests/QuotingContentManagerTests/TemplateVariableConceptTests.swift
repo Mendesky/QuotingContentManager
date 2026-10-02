@@ -16,9 +16,8 @@ struct TemplateVariableConceptTests {
         // 原本這裡不含 `:`，於是 `%Reform:period%` 根本不被視為 placeholder、整條規則跳過它 ——
         // 而前端含 `:`，照樣把它當變數、解不到就印出 `[Reform:period]`。
         // 守衛比消費端窄，等於為「長得像變數但沒登記」的字串開了一個永遠測不到的洞。
-        let regex = try! Regex("%([A-Za-z][A-Za-z0-9:]*)(?:\\|[A-Za-z]+)?%")
-        for match in text.matches(of: regex) {
-            let concept = String(match.output[1].substring ?? "")
+        for match in text.matches(of: #/%([A-Za-z][A-Za-z0-9:]*)(?:\|[A-Za-z]+)?%/#) {
+            let concept = String(match.output.1)
             #expect(
                 Self.knownConcepts.contains(concept),
                 "未登記的 template concept %\(concept)%（於 \(location)）— 請在 TemplateVariableConcept 加對應 case，勿手打 raw 字串"
@@ -26,11 +25,12 @@ struct TemplateVariableConceptTests {
         }
     }
 
-    /// 合約備註（長 prose）內的每個 placeholder concept 都必須是已登記的 concept。
-    @Test("合約備註內的 placeholder 皆為已登記 concept")
-    func contractNotePlaceholdersAreKnownConcepts() {
-        for note in QuotingContentManager.standard.contractNoteManager.notes {
-            assertPlaceholders(in: note.allSegmentsJoined, where: "contractNote uniqueCode=\(note.uniqueCode)")
+    /// QCM 目錄裡每一段文案（服務項目、備註、協助事項、酬金、條款…）的 placeholder concept 都必須已登記。
+    /// 清單由 `QCMTextCatalog` 提供，與 `{…}` 的守衛（`ContentPlaceholderTests`）掃同一份。
+    @Test("所有文案內的 placeholder 皆為已登記 concept")
+    func catalogPlaceholdersAreKnownConcepts() {
+        for entry in QCMTextCatalog.all() {
+            assertPlaceholders(in: entry.text, where: entry.location)
         }
     }
 

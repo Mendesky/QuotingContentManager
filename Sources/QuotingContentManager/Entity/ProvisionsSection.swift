@@ -20,19 +20,19 @@ public struct ProvisionsSection: Codable, Sendable {
 
     /// 取出該帳別實際要印的條文。**呼叫端一律走這支**，不要直接讀 `provisions` 的原始字串，
     /// 否則稅務帳會拿到一套帳的版本。
-    public func displayProvisions(forTaxAccount isTaxAccount: Bool) -> [String] {
-        provisions.map { $0.displayText(forTaxAccount: isTaxAccount) }
+    public func displayProvisions(for accountingCategory: AccountingCategory?) -> [String] {
+        provisions.map { $0.displayText(for: accountingCategory) }
     }
 
-    /// 一條條文。`taxAccount` 為 nil 代表兩個帳別共用 `standard`
+    /// 一條條文。`taxAccountContent` 為 nil 代表兩個帳別共用 `content`
     /// （與 `ServiceItem.taxAccountName` / `WorkItem.taxAccountContent` 同一個慣例）。
     public struct Provision: Codable, Sendable, ExpressibleByStringLiteral {
-        public let standard: String
-        public let taxAccount: String?
+        public let content: String
+        public let taxAccountContent: String?
 
-        public init(_ standard: String, taxAccount: String? = nil) {
-            self.standard = standard
-            self.taxAccount = taxAccount
+        public init(_ content: String, taxAccountContent: String? = nil) {
+            self.content = content
+            self.taxAccountContent = taxAccountContent
         }
 
         /// 兩個帳別共用時可以直接寫字串字面量，省掉一層 `.init(...)` 雜訊。
@@ -40,8 +40,8 @@ public struct ProvisionsSection: Codable, Sendable {
             self.init(value)
         }
 
-        public func displayText(forTaxAccount isTaxAccount: Bool) -> String {
-            isTaxAccount ? (taxAccount ?? standard) : standard
+        public func displayText(for accountingCategory: AccountingCategory?) -> String {
+            accountingCategory.pick(standard: content, taxAccount: taxAccountContent)
         }
     }
 }

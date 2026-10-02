@@ -46,35 +46,35 @@ public struct WorkItem: Codable, Sendable, Equatable {
 
     /// 該帳別要印的內文。`noteNumber` 給值時填入 `{noteRef}`，算不出註號時整段引用消失
     /// （見 `ContractNoteReference.substitute`）。
-    public func displayContent(forTaxAccount isTaxAccount: Bool, noteNumber: String? = nil) -> String {
-        let text = isTaxAccount ? (taxAccountContent ?? content) : content
+    public func displayContent(for accountingCategory: AccountingCategory?, noteNumber: String? = nil) -> String {
+        let text = accountingCategory.pick(standard: content, taxAccount: taxAccountContent)
         return ContractNoteReference.substitute(in: text, reference: noteReference, noteNumber: noteNumber)
     }
 
-    /// 依帳別與組織型態取顯示內容：行號專用內容優先，其次才是帳別分流（`displayContent(forTaxAccount:)`）。
+    /// 依帳別與組織型態取顯示內容：行號專用內容優先，其次才是帳別分流（`displayContent(for:noteNumber:)`）。
     ///
     /// 兩種變體目前不會出現在同一個 workItem（行號內容只在工商登記、稅務帳內容只在記帳），
     /// 優先序只是讓語意明確。`organizationType == nil`（呼叫端取不到型態）→ 退回帳別版，即公司原文。
-    public func displayContent(forTaxAccount isTaxAccount: Bool, organizationType: OrganizationType?) -> String {
+    public func displayContent(for accountingCategory: AccountingCategory?, organizationType: OrganizationType?, noteNumber: String? = nil) -> String {
         if organizationType == .soleProprietorshipOrPartnership, let soleProprietorshipOrPartnershipContent {
-            return soleProprietorshipOrPartnershipContent
+            return ContractNoteReference.substitute(in: soleProprietorshipOrPartnershipContent, reference: noteReference, noteNumber: noteNumber)
         }
-        return displayContent(forTaxAccount: isTaxAccount)
+        return displayContent(for: accountingCategory, noteNumber: noteNumber)
     }
 
-    public func isVisibleInServiceScope(forTaxAccount isTaxAccount: Bool) -> Bool {
+    public func isVisibleInServiceScope(for accountingCategory: AccountingCategory?) -> Bool {
         switch serviceScopeVisibility {
-        case .both:          true
-        case .standardOnly:  !isTaxAccount
-        case .taxAccountOnly: isTaxAccount
-        case .hidden:        false
+        case .both:           true
+        case .standardOnly:   !accountingCategory.usesTaxAccountCopy
+        case .taxAccountOnly: accountingCategory.usesTaxAccountCopy
+        case .hidden:         false
         }
     }
 
     public enum ServiceScopeVisibility: String, Codable, Sendable, Equatable {
         /// 兩個帳別都印（預設）。
         case both
-        /// 只有一套帳（會計帳）印；稅務帳不印。
+        /// 只有印一般版文案的帳別印；稅務帳不印（哪些帳別算一般版見 `usesTaxAccountCopy`）。
         case standardOnly
         /// 只有稅務帳印。
         case taxAccountOnly
