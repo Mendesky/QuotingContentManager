@@ -127,7 +127,7 @@ public struct ServiceItem: Codable, Sendable {
                     // 所以 description 也一併拿掉。
                     .init(
                         type: "accounting",
-                        content: "憑證整理歸檔",
+                        content: "憑證整理",
                         serviceScopeVisibility: .standardOnly
                     ),
                     .init(type: "fundingProcess", content: "資金流程作業"),
@@ -135,9 +135,9 @@ public struct ServiceItem: Codable, Sendable {
                     // 這個陣列的宣告序只影響服務範圍的條列順序（GetServiceScopeApplicationService 依宣告序排），
                     // 不影響報價 UI 的工作項目 marker——那邊是 workItemType ↔ marker 的寫死對照
                     // （mendesky-web `p2-service-item-mapping.ts`：costAnalysis ↔ 'F-CA' / 'H-CA'），與位置無關。
-                    .init(type: "costAnalysis", content: "成本表稅務申報作業", taxAccountContent: "成本表申報作業"),
-                    .init(type: "standardReporting", content: "標準報表編製"),
-                    .init(type: "customizedReporting", content: "客製化報表編製"),
+                    .init(type: "costAnalysis", content: "成本表稅務申報作業"),
+                    .init(type: "standardReporting", content: "標準報表編製", serviceScopeVisibility: .hidden),
+                    .init(type: "customizedReporting", content: "客製化報表編製", serviceScopeVisibility: .hidden),
                     .init(type: "businessTaxFiling", content: "營業稅申報作業"),
                     .init(type: "provisionalIncomeTaxReturnFiling", content: "年度中暫繳申報"),
                     // 兩個帳別都不印（母版皆劃掉）。定義保留：存量案件勾過這一項，
@@ -170,8 +170,10 @@ public struct ServiceItem: Codable, Sendable {
                 workItems: [
                     .init(type: "accountingReform", content: "帳務整理作業"),
                 ],
+                // 1150917 母版兩個帳別的酬金列都寫「整理費(期間)」，不是服務項目名稱，
+                // 所以這裡不帶 `{name}`。`name` / `taxAccountName` 仍供其它呈現用（整帳不進服務範圍）。
                 paymentItemNameFormat: PaymentItemNameFormat(
-                    template: "{name}\(TemplateVariableConcept.reformPeriod.placeholder())"
+                    template: "整理費\(TemplateVariableConcept.reformPeriod.placeholder())"
                 ))
         }
     }
@@ -327,10 +329,10 @@ public struct ServiceItem: Codable, Sendable {
         get {
             .init(
                 type: "CashierOperation",
-                name: "出納事務處理作業",
+                name: "出納事務整理作業",
                 alias: "出納",
                 primary: true,
-                term: "由 貴公司委託出納事務相關處理作業，包括以下內容：",
+                term: "由 貴公司委託出納事務相關整理作業，包括以下內容：",
                 tags: [
                     "ServiceItem/CashierOperation"
                 ],
@@ -345,7 +347,7 @@ public struct ServiceItem: Codable, Sendable {
         get {
             .init(
                 type: "PayrollSupportOperation",
-                name: "薪資人力支援作業",
+                name: "薪資人力支援作業 - 10人以內",
                 alias: "薪資",
                 primary: true,
                 term: "由 貴公司委託薪資人力相關支援作業，包括以下內容：",
@@ -370,7 +372,13 @@ public struct ServiceItem: Codable, Sendable {
                             "員工加、退保及調整作業",
                         ]
                     ),
-                    .init(type: "secondGenerationNationalHealthInsuranceFiling", content: "二代健保申報作業"),
+                    // 1150917 母版：「二代健保申報作業。(註五)」—— 註五是補充保費那條備註（uniqueCode 7）。
+                    // 號碼由讀取端依最終清單現算；沒加購補充保費時那條備註不在清單上，引用整段消失。
+                    .init(
+                        type: "secondGenerationNationalHealthInsuranceFiling",
+                        content: "二代健保申報作業{noteRef}",
+                        noteReference: .init(contractNoteUniqueCode: "7", template: "(註{noteNo})")
+                    ),
                     .init(type: "annualInsurancePaymentCertificate", content: "提供年度保險費繳納證明單"),
                     .init(type: "severancePayCalculation", content: "資遣費計算"),
                 ])

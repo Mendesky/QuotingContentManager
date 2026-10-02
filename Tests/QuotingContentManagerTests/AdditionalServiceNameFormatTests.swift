@@ -242,40 +242,37 @@ struct AdditionalServiceNoteReferenceTests {
     }
 }
 
-/// 編號群組：備註自己不寫號碼，只宣告「我屬於哪個要連號的群組」。
-@Suite("ContractNoteInfo.OptionGroup")
-struct ContractNoteOptionGroupTests {
+/// 同意函勾選項與它引用的那條備註，前綴用字要對得起來。
+///
+/// 1150917 母版定案：前綴是「附加服務選項：」，**不帶序號**。曾實作過依最終清單現算的序號
+/// （附加服務選項1／2），母版最終版拿掉編號後整套機制移除 —— 要撿回來見 commit 64cc61c。
+@Suite("附加服務選項的備註前綴")
+struct AdditionalServiceOptionNotePrefixTests {
 
-    @Test("附加服務選項的前綴用字")
-    func additionalServicePrefix() {
-        #expect(ContractNoteInfo.OptionGroup.additionalService.prefix(number: 1) == "附加服務選項1：")
-        #expect(ContractNoteInfo.OptionGroup.additionalService.prefix(number: 2) == "附加服務選項2：")
-    }
-
-    /// 掛群組的備註內文**不可以**自己寫「附加服務選項N：」——改版前就是寫死在文案裡，
-    /// 隱藏 CTP 之後剩下的那條仍自稱「選項2」。號碼只能由讀取端依最終清單算。
-    @Test("掛了群組的備註內文不自帶序號前綴")
-    func groupedNotesDoNotHardcodeNumbers() {
-        var checked = 0
-        for note in QuotingContentManager.standard.contractNoteManager.notes {
-            guard note.optionGroup != nil else { continue }
-            checked += 1
-            #expect(!note.allSegmentsJoined.contains("附加服務選項"), "備註 \(note.uniqueCode) 的內文自己寫了序號")
+    /// 兩條附加服務備註都以「附加服務選項：」開頭，且**不帶數字**。
+    @Test("前綴是「附加服務選項：」且不帶序號", arguments: ["1", "7"])
+    func prefixWithoutNumber(uniqueCode: String) throws {
+        let note = try #require(QuotingContentManager.standard.getNote(uniqueCode: uniqueCode))
+        #expect(note.allSegmentsJoined.hasPrefix("附加服務選項："))
+        for digit in 0...9 {
+            #expect(!note.allSegmentsJoined.hasPrefix("附加服務選項\(digit)"), "前綴不該帶數字")
         }
-        #expect(checked == 2, "目前只有 CTP 與補充保費兩條備註掛群組，實得 \(checked)")
     }
 
-    /// 反向釘住：有註號引用的附加服務，它引用的那條備註一定也要掛在編號群組裡
-    /// （母版上這兩條就是同意函上那兩個「附加服務選項」）。
-    @Test("被引用的備註都掛在附加服務群組")
-    func referencedNotesAreGrouped() {
+    /// 反向釘住：有註號引用的附加服務，它引用的那條備註就是帶「附加服務選項：」前綴的那兩條。
+    @Test("被引用的備註都帶附加服務選項前綴")
+    func referencedNotesCarryThePrefix() {
+        var checked = 0
         for item in QuotingContentManager.standard.serviceItems {
             guard
                 case let .embedsPrice(format) = item.additionalServiceNameStrategy,
                 let reference = format.noteReference
             else { continue }
+            checked += 1
             let note = QuotingContentManager.standard.getNote(uniqueCode: reference.contractNoteUniqueCode)
-            #expect(note?.optionGroup == .additionalService, "\(item.type) 引用的備註沒掛附加服務群組")
+            #expect(note?.allSegmentsJoined.hasPrefix("附加服務選項：") == true,
+                    "\(item.type) 引用的備註沒有附加服務選項前綴")
         }
+        #expect(checked == 2, "目前只有 CTP 與補充保費兩條有註號引用，實得 \(checked)")
     }
 }

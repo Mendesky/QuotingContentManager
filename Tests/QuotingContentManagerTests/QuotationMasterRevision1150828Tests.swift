@@ -81,7 +81,7 @@ struct QuotationMasterRevision1150828Tests {
         #expect(tax.contains("應對稅務申報服務作業儘量協助"))
         #expect(standard.contains("應對帳務整理工作儘量協助"))
         // 稅務版獨有的兩處改寫（母版沒有刪除線、直接改的）。
-        #expect(tax.contains("簽證或稅務申報服務無法如法定期間內完成"))
+        #expect(tax.contains("簽證或稅務申報服務無法於法定期間內完成"))
         #expect(standard.contains("簽證或服務無法於法定期間內完成"))
         // 末句兩版相同。
         #expect(tax.hasSuffix("且本事務所得依第六點(二)之時間終止受託。"))
@@ -149,11 +149,11 @@ struct QuotationMasterRevision1150828Tests {
         let daily = try #require(ServiceItem.accounting.workItem(type: "accounting"))
         #expect(daily.isVisibleInServiceScope(forTaxAccount: true) == false)
         #expect(daily.isVisibleInServiceScope(forTaxAccount: false) == true)
-        #expect(daily.displayContent(forTaxAccount: false) == "憑證整理歸檔")
+        #expect(daily.displayContent(forTaxAccount: false) == "憑證整理")
         #expect(daily.description == nil)
 
         let costAnalysis = try #require(ServiceItem.accounting.workItem(type: "costAnalysis"))
-        #expect(costAnalysis.displayContent(forTaxAccount: true) == "成本表申報作業")
+        #expect(costAnalysis.displayContent(forTaxAccount: true) == "成本表稅務申報作業")
         #expect(costAnalysis.displayContent(forTaxAccount: false) == "成本表稅務申報作業")
         #expect(costAnalysis.isVisibleInServiceScope(forTaxAccount: true) == true)
     }
@@ -181,21 +181,17 @@ struct QuotationMasterRevision1150828Tests {
         #expect(!qcm.contractNoteManager.notes.contains { $0.allSegmentsJoined.contains("不以不正當之削價方式") })
     }
 
-    /// 母版上這兩條備註是以「附加服務選項1：」「附加服務選項2：」開頭的，但**序號不寫在這裡** ——
-    /// 它取決於該份報價單最後印出哪幾條，由 OC `GetContractNotes` 依最終清單編號後掛上前綴。
-    /// 這裡只驗內文用字；號碼與前綴的契約在 `ContractNoteOptionGroupTests`。
+    /// 前綴「附加服務選項：」的契約在 `AdditionalServiceOptionNotePrefixTests`，這裡只驗內文用字。
     @Test("附加服務兩條註的用字")
     func additionalServiceNotes() throws {
-        let ctp = try #require(qcm.getNote(uniqueCode: "1"))
-        #expect(ctp.optionGroup == .additionalService)
-        #expect(ctp.allSegmentsJoined.hasPrefix("代辦年度CTP申報"))
-        #expect(ctp.allSegmentsJoined.contains("依據公司法第22條之1"))
-        #expect(!ctp.allSegmentsJoined.contains("增訂"))
-        #expect(ctp.allSegmentsJoined.contains("(董事、監察及經理人)"))
+        let ctp = try #require(qcm.getNote(uniqueCode: "1")).allSegmentsJoined
+        #expect(ctp.hasPrefix("附加服務選項：代辦年度CTP申報"))
+        #expect(ctp.contains("依據公司法第22條之1"))
+        #expect(!ctp.contains("增訂"))
+        #expect(ctp.contains("(董事、監察及經理人)"))
 
-        let premium = try #require(qcm.getNote(uniqueCode: "7"))
-        #expect(premium.optionGroup == .additionalService)
-        #expect(premium.allSegmentsJoined.hasPrefix("依全民健康保險扣取"))
+        let premium = try #require(qcm.getNote(uniqueCode: "7")).allSegmentsJoined
+        #expect(premium.hasPrefix("附加服務選項：依全民健康保險扣取"))
     }
 
     @Test("稅簽優點第 3 點改成電腦選案比率")
@@ -213,14 +209,6 @@ struct QuotationMasterRevision1150828Tests {
         #expect(note.contains("教育訓練課程(除特定專案外)，"))
     }
 
-    // MARK: 信件
-
-    @Test("信件內文在公司名與服務名之間補「有關」")
-    func letterContent() {
-        #expect(qcm.letter.content.hasPrefix(
-            "茲將附上\(TemplateVariableConcept.quotingCaseName.placeholder())有關\(TemplateVariableConcept.serviceItemNames.placeholder())之專業服務公費報價單。"
-        ))
-    }
 }
 
 /// 註一（報價基準）／註二（付款條件）的動態組裝。
@@ -260,7 +248,7 @@ struct CompositeContractNoteTests {
     // 第一句的主詞隨服務裁剪（2026-10-02 裁定）；第二句（稅務諮詢費用）不綁稅簽，一律出現。
     private static let noteOneTail = """
     若有巨額變動或變更申報方式，將另與　貴公司討論報價金額。
-    又 貴公司若後續無營利事業所得稅查核簽證及未分配盈餘查核簽證服務，本事務所將另行收取稅務諮詢費用。
+    又 貴公司若後續無營利事業所得稅查核簽證及未分配盈餘查核簽證服務，本事務所就已提供服務範圍，將另行收取費用。
     """
 
     /// 七種服務組合 × 第一句的主詞。記帳那段自己就含「營業收入總額」，所以同時有稅簽時
@@ -313,17 +301,17 @@ struct CompositeContractNoteTests {
     func noteTwoWithEverything() throws {
         let content = try #require(try composed("17", [financialAudit, taxAudit, accounting]))
         #expect(content == """
-        簽證公費請於當年度末日前支付半數，另外半數請於次年度五月末日前支付；稅務申報服務作業費用%AccountingPeriod%，並%AccountingBilling%，並應支付至本事務所指定之銀行帳戶。
+        簽證公費請於當年度12月31日前支付半數，另外半數請於次年度5月31日前支付；稅務申報服務作業費用%AccountingPeriod%，並%AccountingBilling%，並應支付至本事務所指定之銀行帳戶。
         承辦委任事項所發生之代墊費用，包括機票、簽證、住宿等，另行檢具相關憑證向 貴公司請款。
         """)
         // 財簽與稅簽的付款句在改版前是兩條 note 各一份、內容一模一樣；併條之後只能出現一次。
-        #expect(content.components(separatedBy: "簽證公費請於當年度末日前支付半數").count - 1 == 1)
+        #expect(content.components(separatedBy: "簽證公費請於當年度12月31日前支付半數").count - 1 == 1)
     }
 
     @Test("註二 — 只有簽證沒有記帳：中段消失，標點要收斂")
     func noteTwoAuditOnly() throws {
         #expect(try composed("17", [financialAudit]) == """
-        簽證公費請於當年度末日前支付半數，另外半數請於次年度五月末日前支付。
+        簽證公費請於當年度12月31日前支付半數，另外半數請於次年度5月31日前支付。
         承辦委任事項所發生之代墊費用，包括機票、簽證、住宿等，另行檢具相關憑證向 貴公司請款。
         """)
     }

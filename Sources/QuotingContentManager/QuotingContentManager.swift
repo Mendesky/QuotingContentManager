@@ -52,8 +52,13 @@ public struct QuotingContentManager: Sendable {
         getServiceItem(type: serviceType)?.workItem(type: workItemType)
     }
 
+    /// 查詢一律只看未 deprecated 的備註；deprecated 的條目留在 `ContractNoteManager` 只為保留內容。
+    private var activeNotes: [ContractNoteInfo] {
+        contractNoteManager.notes.filter { !$0.deprecated }
+    }
+
     public func getNote(uniqueCode: String) -> ContractNoteInfo? {
-        contractNoteManager.notes.filter { !$0.deprecated }.first { $0.uniqueCode == uniqueCode }
+        activeNotes.first { $0.uniqueCode == uniqueCode }
     }
 
     public func fetchNotes(tip: String) -> [ContractNoteInfo] {
@@ -61,7 +66,7 @@ public struct QuotingContentManager: Sendable {
     }
 
     public func fetchNotes(mutexTags: [String]) -> [ContractNoteInfo] {
-        contractNoteManager.notes.filter {
+        activeNotes.filter {
             if case let .tags(tags) = $0.mutex {
                 Set<String>(mutexTags).isSubset(of: Set<String>(tags))
             } else {
@@ -79,7 +84,7 @@ public struct QuotingContentManager: Sendable {
     }
 
     public func fetchNotes(subsetOf tags: [String]) -> [ContractNoteInfo] {
-        contractNoteManager.notes.filter { note in
+        activeNotes.filter { note in
             note.isSubsetOf(tags: tags)
         }.sorted { lhs, rhs in
             lhs.weight > rhs.weight
@@ -87,7 +92,7 @@ public struct QuotingContentManager: Sendable {
     }
 
     public func fetchNotes(symmetricDifference tags: [String]) -> [ContractNoteInfo] {
-        contractNoteManager.notes.filter { note in
+        activeNotes.filter { note in
             !note.isSubsetOf(tags: tags)
         }.sorted { lhs, rhs in
             lhs.weight > rhs.weight
@@ -149,7 +154,7 @@ extension QuotingContentManager {
         get {
             .init(
                 title: "本公司同意委託 貴事務所對本公司執行有關\(TemplateVariableConcept.serviceItemNames.placeholder())之專業服務及公費報價，請查照。",
-                content: "茲將附上\(TemplateVariableConcept.quotingCaseName.placeholder())有關\(TemplateVariableConcept.serviceItemNames.placeholder())之專業服務公費報價單。\n我們希望以最專業多元的服務與 貴公司長久配合，公費內容若經確認，煩請將最後一頁同意函簽章並回覆至敝事務所，謝謝您的合作。"
+                content: "茲將附上 貴公司有關\(TemplateVariableConcept.serviceItemNames.placeholder())之專業服務公費報價單。\n我們希望以最專業多元的服務與 貴公司長久配合，公費內容若經確認，煩請將最後一頁同意函簽章並回覆至敝事務所，謝謝您的合作。"
             )
         }
     }
@@ -175,12 +180,12 @@ extension QuotingContentManager {
         get {
             .init(title: "權利義務事項", provisions: [
                 .init(
-                    "本事務所提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業服務將依據　貴公司所提供之資料及文件，利用會計專業知識蒐集、分類及彙總資訊，進而提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業服務項目，本事務所對資料並無查核或核閱義務，本事務所僅係依 貴公司所提供之資訊完成\(TemplateVariableConcept.accountingWorkName.placeholder())作業服務。",
-                    taxAccount: "本事務所提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業將依據　貴公司所提供之資料及文件，利用會計專業知識蒐集、分類及彙總資訊，進而提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業，本事務所對資料並無查核或核閱義務，本事務所僅係依 貴公司所提供之資訊完成\(TemplateVariableConcept.accountingWorkName.placeholder())作業。"
+                    "本事務所提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業服務將依據　貴公司所提供之資料及文件，利用會計專業知識整理、分類及彙總資訊，進而提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業服務項目，本事務所對資料並無查核或核閱義務，本事務所僅係依 貴公司所提供之資訊完成\(TemplateVariableConcept.accountingWorkName.placeholder())作業服務。",
+                    taxAccount: "本事務所提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業將依據　貴公司所提供之資料及文件，利用會計專業知識整理、分類及彙總資訊，進而提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業，本事務所對資料並無查核或核閱義務，本事務所僅係依 貴公司所提供之資訊完成\(TemplateVariableConcept.accountingWorkName.placeholder())作業。"
                 ),
                 .init(
-                    "本事務所所提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業服務，僅係依 貴公司提供之文件與資料分類及彙總，並僅限協助　貴公司為\(TemplateVariableConcept.accountingWorkName.placeholder())作業服務使用。除本事務所分類及彙總有過失之情形外，如本事務所於本報價單意旨提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業服務事項，而遭致第三人向本事務所為法律上之主張而致生損害時，貴公司同意負責補償該損害。另未經本事務所書面同意，本事務所所提供之服務不得提供他人使用；且若有此種情形致他人權益受損，本事務所不負任何責任。",
-                    taxAccount: "本事務所所提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業，僅係依 貴公司提供之文件與資料分類及彙總，並僅限協助　貴公司為\(TemplateVariableConcept.accountingWorkName.placeholder())作業使用。除本事務所分類及彙總有過失之情形外，如本事務所於本報價單意旨提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業，而遭致第三人向本事務所為法律上之主張而致生損害時，貴公司同意負責補償該損害。另未經本事務所書面同意，本事務所所提供之服務不得提供他人使用；且若有此種情形致他人權益受損，本事務所不負任何責任。"
+                    "本事務所所提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業服務，僅係依 貴公司提供之文件與資料分類及彙總，並僅限協助　貴公司為\(TemplateVariableConcept.accountingWorkName.placeholder())作業服務使用。\n貴公司應確保資料合法性及完整性，除本事務所彙總有過失之情形外，如本事務所於本報價單意旨提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業服務事項，而遭致第三人向本事務所為法律上之主張而致生損害時，貴公司同意負責補償該損害。另未經本事務所書面同意，本事務所所提供之服務不得提供他人使用；且若有此種情形致他人權益受損，本事務所不負任何責任。",
+                    taxAccount: "本事務所所提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業，僅係依 貴公司提供之文件與資料分類及彙總，並僅限協助　貴公司為\(TemplateVariableConcept.accountingWorkName.placeholder())作業使用。\n貴公司應確保資料合法性及完整性，除本事務所彙總有過失之情形外，如本事務所於本報價單意旨提供\(TemplateVariableConcept.accountingWorkName.placeholder())作業，而遭致第三人向本事務所為法律上之主張而致生損害時，貴公司同意負責補償該損害。另未經本事務所書面同意，本事務所所提供之服務不得提供他人使用；且若有此種情形致他人權益受損，本事務所不負任何責任。"
                 ),
                 "本事務所對　貴公司所提供之各項資料或相關文件，當盡保密之責。",
             ])

@@ -47,7 +47,7 @@ public struct ContractNoteManager: Sendable {
             .init("營業收入總額及憑證量", separator: "、", traits: ["ServiceItem/Accounting"]),
             .init("""
             若有巨額變動或變更申報方式，將另與　貴公司討論報價金額。
-            又 貴公司若後續無營利事業所得稅查核簽證及未分配盈餘查核簽證服務，本事務所將另行收取稅務諮詢費用。
+            又 貴公司若後續無營利事業所得稅查核簽證及未分配盈餘查核簽證服務，本事務所就已提供服務範圍，將另行收取費用。
             """),
         ]),
 
@@ -62,7 +62,7 @@ public struct ContractNoteManager: Sendable {
             "ServiceItem/TaxComplianceAudit",
             "ServiceItem/Accounting",
         ], weight: 78, segments: [
-            .init("簽證公費請於當年度末日前支付半數，另外半數請於次年度五月末日前支付",
+            .init("簽證公費請於當年度12月31日前支付半數，另外半數請於次年度5月31日前支付",
                   traits: ["ServiceItem/FinancialComplianceAudit", "ServiceItem/TaxComplianceAudit"]),
             .init("\(TemplateVariableConcept.accountingWorkName.placeholder())作業費用\(TemplateVariableConcept.accountingPeriod.placeholder())，並\(TemplateVariableConcept.accountingBilling.placeholder())，並應支付至本事務所指定之銀行帳戶",
                   separator: "；", traits: ["ServiceItem/Accounting"]),
@@ -70,10 +70,10 @@ public struct ContractNoteManager: Sendable {
                   separator: "。\n"),
         ], terminator: "。"),
 
-        // 前綴「附加服務選項N：」不寫死在這裡 —— 序號取決於當下有幾條同群組備註與其排序，
-        // 由讀取端算（見 `ContractNoteInfo.OptionGroup`）。
-        .init(uniqueCode: "1", traits: ["ServiceItem/Ctp"], weight: 30, optionGroup: .additionalService, content: """
-        代辦年度CTP申報(每年3月)，依據公司法第22條之1是為了配合洗錢防制政策，協助建置完善洗錢防制體制，強化洗錢防制作為，以增加法人(公司)之透明度，並有效掌握公司負責人(董事、監察及經理人)及主要股東(持有超過10%股份或出資額股東)之持股或出資額。
+        // 前綴「附加服務選項：」**不帶序號**（1150917 母版定案）。曾經實作過依最終清單現算的序號
+        // （附加服務選項1／2），母版最終版拿掉了編號，整套機制隨之移除 —— 要撿回來見 commit 64cc61c。
+        .init(uniqueCode: "1", traits: ["ServiceItem/Ctp"], weight: 30, content: """
+        附加服務選項：代辦年度CTP申報(每年3月)，依據公司法第22條之1是為了配合洗錢防制政策，協助建置完善洗錢防制體制，強化洗錢防制作為，以增加法人(公司)之透明度，並有效掌握公司負責人(董事、監察及經理人)及主要股東(持有超過10%股份或出資額股東)之持股或出資額。
         """),
         .init(uniqueCode: "2", traits: ["general", "Tip/benefit"], weight: 0, content: """
         最新稅務訊息通知，本事務所另將不定期以電子郵件寄送最新稅務法令之變更、稅捐獎勵減免等有關訊息供　貴公司參考，亦可免費參加本所舉辦之教育訓練課程(除特定專案外)，以使　貴公司與本事務所共同成長。
@@ -88,8 +88,8 @@ public struct ContractNoteManager: Sendable {
         // `ContractNoteAddedByTraits.note`。
         .init(uniqueCode: "7", traits: [
             "ServiceItem/AssistanceAnnualSupplementaryPremiumDeductionDetailsReporting",
-        ], weight: 25, optionGroup: .additionalService, content: """
-        依全民健康保險扣取及繳納補充保費辦法第10條規定，扣繳義務人申報扣費明細時點，採年度申報應於每年1/31前將上一年度向保險對象扣取之補充保費金額，填報扣費明細彙報健保署。
+        ], weight: 25, content: """
+        附加服務選項：依全民健康保險扣取及繳納補充保費辦法第10條規定，扣繳義務人申報扣費明細時點，採年度申報應於每年1/31前將上一年度向保險對象扣取之補充保費金額，填報扣費明細彙報健保署。
         """),
         // 曾有一筆 uniqueCode 16 是本段文案的「專案整帳」版本，已於 2026-09-15 移除——
         // 專案整帳不再有「是否提供電子檔」config（OC 寫側擋掉），該 trait 組合永遠不成立。
@@ -102,19 +102,23 @@ public struct ContractNoteManager: Sendable {
         ], weight: 50, content: """
         須提供 \(TemplateVariableConcept.reformPeriod.placeholder()) 相關會計帳務報表及帳冊（含日記帳、實帳戶科目餘額明細）Excel 電子檔，若未能提供將另與　貴公司討論報價金額。
         """),
-        .init(uniqueCode: "10", traits: [
+        // 1150917 母版拿掉了出納這條備註。先標 deprecated 讓它不再被帶出、內容保留不刪，
+        // 文案定案前可能還要撿回來。
+        .init(deprecated: true, uniqueCode: "10", traits: [
             .init(tags: [
                 "ServiceItem/CashierOperation",
             ]),
         ], weight: 40, content: """
-        出納事務處理作業內容包含：
+        出納事務整理作業內容包含：
         A.國內轉帳30 筆；每加⼀筆多50 元。
         B.國外轉帳10 筆；每加⼀筆多100 元。
         C.⼀次薪資轉帳。
-        *如出納事務處理作業有重複處理，將額外收取處理費用2,000元/次。
+        *如出納事務整理作業有重複處理，將額外收取處理費用2,000元/次。
         公費費用\(TemplateVariableConcept.cashierPeriod.placeholder())，並\(TemplateVariableConcept.cashierBilling.placeholder())
         """),
-        .init(uniqueCode: "11", traits: [
+        // 1150917 母版拿掉了薪資這條備註。先標 deprecated 讓它不再被帶出、內容保留不刪，
+        // 文案定案前可能還要撿回來。
+        .init(deprecated: true, uniqueCode: "11", traits: [
             .init(tags: [
                 "ServiceItem/PayrollSupportOperation",
             ]),

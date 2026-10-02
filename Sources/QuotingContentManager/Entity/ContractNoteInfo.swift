@@ -27,24 +27,14 @@ public struct ContractNoteInfo: Sendable {
     public let weight: Int
     public let deprecated: Bool
 
-    /// 這條備註屬於哪個「編號群組」。非 nil 時，內文前面要掛上群組的序號前綴
-    /// （例如「附加服務選項2：」）。
-    ///
-    /// **序號不存在這裡，也不存在備註快照裡**：它取決於當下有幾條同群組的備註、以及它們的排序，
-    /// 兩者都會變（隱藏一張附加服務卡 → 少一條；使用者拖曳 → 順序換）。寫死就會像改版前那樣，
-    /// 隱藏 CTP 之後補充保費仍然自稱「選項2」。唯一算得準的地方是讀取端拿到最終排序之後，
-    /// 見 OpportunityContext 的 `GetContractNotesApplicationService`。
-    public let optionGroup: OptionGroup?
-
     /// 單段、無條件的備註（改版前的既有形狀）。
-    init(deprecated: Bool = false, uniqueCode: String, mutex: Mutex? = nil, traits: [Trait], weight: Int, optionGroup: OptionGroup? = nil, content: String) {
+    init(deprecated: Bool = false, uniqueCode: String, mutex: Mutex? = nil, traits: [Trait], weight: Int, content: String) {
         self.init(
             deprecated: deprecated,
             uniqueCode: uniqueCode,
             mutex: mutex,
             traits: traits,
             weight: weight,
-            optionGroup: optionGroup,
             segments: [.init(content)],
             terminator: ""
         )
@@ -57,7 +47,6 @@ public struct ContractNoteInfo: Sendable {
         mutex: Mutex? = nil,
         traits: [Trait],
         weight: Int,
-        optionGroup: OptionGroup? = nil,
         segments: [Segment],
         terminator: String = ""
     ) {
@@ -67,21 +56,7 @@ public struct ContractNoteInfo: Sendable {
         self.traits = traits
         self.mutex = mutex
         self.weight = weight
-        self.optionGroup = optionGroup
         self.deprecated = deprecated
-    }
-
-    /// 需要連號呈現的備註群組。
-    public enum OptionGroup: String, Sendable, CaseIterable, Hashable {
-        /// 同意函可勾選的附加服務（CTP、補充保費…），內文前綴「附加服務選項N：」。
-        case additionalService
-
-        /// 前綴的用字住在這裡而不是呼叫端 —— 文案屬於 QCM，讀取端只負責算出 `number`。
-        public func prefix(number: Int) -> String {
-            switch self {
-            case .additionalService: "附加服務選項\(number)："
-            }
-        }
     }
 
     /// 依實際命中的 tag 組出這條備註要寫進報價單的內文。

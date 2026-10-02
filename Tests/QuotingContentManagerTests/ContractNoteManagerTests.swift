@@ -67,10 +67,13 @@ struct MasterTemplateTests {
     // commit 5772dba「母版文案去『有關』」刻意把 letter.content 的「有關」拿掉；1150828 母版
     // （藍儀 CPA）又把它加回來，而且該處沒有刪除線標記、是正文。兩次相隔不久，有可能是那份
     // Word 母版在這一句上沒跟上 5772dba 的修訂。已回報待確認，確認前以母版為準。
+    //
+    // 1150917 最終版又動了同一句：公司名換成「貴公司」（信件不再顯示公司名稱）。
+    // 「有關」在這一版仍然保留，所以上面那段反轉的紀錄依然有效。
     @Test("letter.content（母版文案）含「有關」二字，且變數與其餘文字保留")
     func letterContentKeepsYouGuan() {
         let content = QuotingContentManager.standard.letter.content
-        #expect(content.contains("茲將附上\(TemplateVariableConcept.quotingCaseName.placeholder())有關\(TemplateVariableConcept.serviceItemNames.placeholder())之專業服務公費報價單。"))
+        #expect(content.contains("茲將附上 貴公司有關\(TemplateVariableConcept.serviceItemNames.placeholder())之專業服務公費報價單。"))
     }
 
     @Test("contractHeader／purpose／letter.title 的「有關」不受影響")

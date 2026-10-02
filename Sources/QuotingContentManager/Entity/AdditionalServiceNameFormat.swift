@@ -7,34 +7,12 @@ public struct AdditionalServiceNameFormat: Codable, Sendable, Equatable {
     /// 同意函勾選項末尾指向合約注意事項的引用（母版：CTP 寫「)(註四)」、補充保費寫「；註五)」）。
     ///
     /// nil 代表這個附加服務不引用任何備註。
-    public let noteReference: NoteReference?
+    public let noteReference: ContractNoteReference?
 
-    public init(template: String, requiresCount: Bool, noteReference: NoteReference? = nil) {
+    public init(template: String, requiresCount: Bool, noteReference: ContractNoteReference? = nil) {
         self.template = template
         self.requiresCount = requiresCount
         self.noteReference = noteReference
-    }
-
-    /// 指向某條合約注意事項的引用。
-    ///
-    /// **標點與被引用的對象都留在 QCM**：兩條附加服務的寫法不同（CTP 在括號外另開括號、補充保費在
-    /// 括號內用分號），那是文案決定；「CTP 引用的是哪一條註」同樣是文案決定。兩者散到呼叫端，
-    /// 就會變成讀取端硬寫一張 serviceItem → uniqueCode 的對照表，改文案時沒人記得去同步。
-    public struct NoteReference: Codable, Sendable, Equatable {
-        /// 被引用的備註在 `ContractNoteManager` 的 `uniqueCode`。
-        public let contractNoteUniqueCode: String
-
-        /// 引用的寫法；`{noteNo}` 由呼叫端換成實際註號（中文數字）。
-        public let template: String
-
-        public init(contractNoteUniqueCode: String, template: String) {
-            self.contractNoteUniqueCode = contractNoteUniqueCode
-            self.template = template
-        }
-
-        public func render(noteNumber: String) -> String {
-            template.replacingOccurrences(of: "{noteNo}", with: noteNumber)
-        }
     }
 
     /// 把 template 內的 `{price}` / `{count}` / `{noteRef}` placeholder 換成實際值。
@@ -44,13 +22,10 @@ public struct AdditionalServiceNameFormat: Codable, Sendable, Equatable {
     ///   註號取決於該份報價單實際印出哪些備註，算不出來時寧可不印引用，也不要印出「(註)」這種殘缺的東西。
     ///   因此 template 要讓「沒有引用」的版本自己讀得通（例如補充保費的 `)` 留在 template 裡）。
     public func render(price: Decimal, count: Int?, noteNumber: String? = nil) -> String {
-        let noteRef = noteNumber.flatMap { number in
-            noteReference?.render(noteNumber: number)
-        } ?? ""
-        return template
+        let withValues = template
             .replacingOccurrences(of: "{price}", with: Self.formatPrice(price))
             .replacingOccurrences(of: "{count}", with: count.map(String.init) ?? "")
-            .replacingOccurrences(of: "{noteRef}", with: noteRef)
+        return ContractNoteReference.substitute(in: withValues, reference: noteReference, noteNumber: noteNumber)
     }
 
     /// 阿拉伯數字 ＋ 中文單位（1150828 母版用字：「加收2仟元/家」，不是「貳仟」也不是「2,000」）。

@@ -14,13 +14,20 @@ public struct WorkItem: Codable, Sendable, Equatable {
     /// 只有稅務帳劃掉、一套帳留著（改成只印「憑證整理歸檔」）。
     public let serviceScopeVisibility: ServiceScopeVisibility
 
+    /// 這個 workItem 在服務範圍末尾要指向的合約注意事項（1150917 母版：
+    /// 「二代健保申報作業。(註五)」）。nil 代表不引用任何備註。
+    ///
+    /// 引用的位置由 `content` / `taxAccountContent` 裡的 `{noteRef}` 標出。
+    public let noteReference: ContractNoteReference?
+
     public init(
         type: String,
         content: String,
         taxAccountContent: String? = nil,
         description: String? = nil,
         subItems: [String] = [],
-        serviceScopeVisibility: ServiceScopeVisibility = .both
+        serviceScopeVisibility: ServiceScopeVisibility = .both,
+        noteReference: ContractNoteReference? = nil
     ) {
         self.type = type
         self.content = content
@@ -28,10 +35,14 @@ public struct WorkItem: Codable, Sendable, Equatable {
         self.description = description
         self.subItems = subItems
         self.serviceScopeVisibility = serviceScopeVisibility
+        self.noteReference = noteReference
     }
 
-    public func displayContent(forTaxAccount isTaxAccount: Bool) -> String {
-        isTaxAccount ? (taxAccountContent ?? content) : content
+    /// 該帳別要印的內文。`noteNumber` 給值時填入 `{noteRef}`，算不出註號時整段引用消失
+    /// （見 `ContractNoteReference.substitute`）。
+    public func displayContent(forTaxAccount isTaxAccount: Bool, noteNumber: String? = nil) -> String {
+        let text = isTaxAccount ? (taxAccountContent ?? content) : content
+        return ContractNoteReference.substitute(in: text, reference: noteReference, noteNumber: noteNumber)
     }
 
     public func isVisibleInServiceScope(forTaxAccount isTaxAccount: Bool) -> Bool {
