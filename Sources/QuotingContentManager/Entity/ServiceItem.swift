@@ -14,6 +14,12 @@ public struct ServiceItem: Codable, Sendable {
     public let alias: String
     public let primary: Bool
     public let term: String?
+    /// 稅務帳專用的 `term`；nil 代表兩個帳別共用 `term`。
+    ///
+    /// 這一對刻意允許「一邊有、一邊沒有」：記帳卡在 1150828 母版裡，稅務帳有前言
+    /// （「由　貴公司委託本事務所代辦相關作業，包括以下內容：」）、一套帳整句被劃掉。
+    /// 寫成 `term: nil` ＋ `taxAccountTerm: "…"` 即可表達。
+    public let taxAccountTerm: String?
     public var tags: [String]
     public let workItems: [WorkItem]
     public let scopeTerms: [ScopeTerm]
@@ -30,6 +36,7 @@ public struct ServiceItem: Codable, Sendable {
         alias: String,
         primary: Bool,
         term: String? = nil,
+        taxAccountTerm: String? = nil,
         tags: [String] = [],
         workItems: [WorkItem] = [],
         scopeTerms: [ScopeTerm] = [],
@@ -42,6 +49,7 @@ public struct ServiceItem: Codable, Sendable {
         self.alias = alias
         self.primary = primary
         self.term = term
+        self.taxAccountTerm = taxAccountTerm
         self.tags = tags
         self.workItems = workItems
         self.scopeTerms = scopeTerms
@@ -57,6 +65,7 @@ public struct ServiceItem: Codable, Sendable {
         self.alias = try container.decode(String.self, forKey: .alias)
         self.primary = try container.decode(Bool.self, forKey: .primary)
         self.term = try container.decodeIfPresent(String.self, forKey: .term)
+        self.taxAccountTerm = try container.decodeIfPresent(String.self, forKey: .taxAccountTerm)
         self.tags = try container.decodeIfPresent([String].self, forKey: .tags) ?? []
         self.workItems = try container.decodeIfPresent([WorkItem].self, forKey: .workItems) ?? []
         self.scopeTerms = try container.decodeIfPresent([ScopeTerm].self, forKey: .scopeTerms) ?? []
@@ -64,9 +73,17 @@ public struct ServiceItem: Codable, Sendable {
         self.paymentItemNameFormat = try container.decodeIfPresent(PaymentItemNameFormat.self, forKey: .paymentItemNameFormat)
     }
 
-    public var effectiveScopeTerms: [ScopeTerm] {
+    /// 服務範圍要印的段落。`scopeTerms` 優先；沒有時把 legacy `term` 包成單段，
+    /// 標題與內文都取該帳別的版本。兩者皆無 → 空陣列（渲染端只印標題那一行）。
+    ///
+    /// 記帳卡在一套帳是刻意回空的——1150828 母版把一套帳的前言整句劃掉了。
+    public func effectiveScopeTerms(for accountingCategory: AccountingCategory?) -> [ScopeTerm] {
         if !scopeTerms.isEmpty { return scopeTerms }
-        if let term { return [.init(name: name, content: term)] }
+        // 不走 `pick`：`term` 本身可以是 nil（一套帳刻意沒有前言），兩邊都可能缺。
+        let effectiveTerm = accountingCategory.usesTaxAccountCopy ? (taxAccountTerm ?? term) : term
+        if let effectiveTerm {
+            return [.init(name: displayName(for: accountingCategory), content: effectiveTerm)]
+        }
         return []
     }
 
@@ -78,15 +95,15 @@ public struct ServiceItem: Codable, Sendable {
         workItems.contains { $0.type == workItemType }
     }
 
-    public func displayName(forTaxAccount isTaxAccount: Bool) -> String {
-        isTaxAccount ? (taxAccountName ?? name) : name
+    public func displayName(for accountingCategory: AccountingCategory?) -> String {
+        accountingCategory.pick(standard: name, taxAccount: taxAccountName)
     }
 
-    /// 結合 `displayName(forTaxAccount:)` 與 `paymentItemNameFormat.template` 算出 paymentItem 顯示名稱。
+    /// 結合 `displayName(for:)` 與 `paymentItemNameFormat.template` 算出 paymentItem 顯示名稱。
     /// `{name}` 由本 method 替換為 displayName；`%xxx%` placeholder 保留交由 frontend 展開。
     /// 若 serviceItem 沒有設定 `paymentItemNameFormat`，回 nil（caller 端 fallback 為 displayName 即可）。
-    public func paymentItemName(forTaxAccount isTaxAccount: Bool) -> String? {
-        paymentItemNameFormat?.resolve(name: displayName(forTaxAccount: isTaxAccount))
+    public func paymentItemName(for accountingCategory: AccountingCategory?) -> String? {
+        paymentItemNameFormat?.resolve(name: displayName(for: accountingCategory))
     }
 
 
@@ -95,37 +112,47 @@ public struct ServiceItem: Codable, Sendable {
         get {
             .init(
                 type: "Accounting",
-                name: "會計帳務處理作業",
-                taxAccountName: "稅務帳務處理作業",
+                name: "帳務整理作業",
+                taxAccountName: "稅務申報服務作業",
                 alias: "記帳",
                 primary: true,
-                term: "由 貴公司委託本事務所代辦相關會計工作，包括以下內容：",
+                // 一套帳沒有前言（1150828 母版整句劃掉），稅務帳才有——所以是 `term: nil` ＋ `taxAccountTerm`，
+                // 不是兩邊各一句。
+                taxAccountTerm: "由　貴公司委託本事務所代辦相關作業，包括以下內容：",
                 tags: [
                     "ServiceItem/Accounting"
                 ],
                 workItems: [
+                    // 稅務帳不印這一項（母版整條劃掉）；一套帳只留「憑證整理歸檔」，
+                    // 原本的標題「平時會計帳務作業，包括:」與後半段「傳票登打、相關帳簿與代編報表」都被劃掉，
+                    // 所以 description 也一併拿掉。
                     .init(
                         type: "accounting",
-                        content: "平時會計帳務作業",
-                        taxAccountContent: "平時稅務帳務作業",
-                        description: "憑證整理、傳票登打、相關帳簿與代編報表"
+                        content: "憑證整理",
+                        serviceScopeVisibility: .standardOnly
                     ),
                     .init(type: "fundingProcess", content: "資金流程作業"),
-                    .init(type: "standardReporting", content: "標準報表編製"),
-                    .init(type: "customizedReporting", content: "客製化報表編製"),
+                    // 母版把成本表排在資金流程之後、營業稅之前，不再是陣列最後一項。
+                    // 這個陣列的宣告序只影響服務範圍的條列順序（GetServiceScopeApplicationService 依宣告序排），
+                    // 不影響報價 UI 的工作項目 marker——那邊是 workItemType ↔ marker 的寫死對照
+                    // （mendesky-web `p2-service-item-mapping.ts`：costAnalysis ↔ 'F-CA' / 'H-CA'），與位置無關。
+                    .init(type: "costAnalysis", content: "成本表稅務申報作業"),
+                    .init(type: "standardReporting", content: "標準報表編製", serviceScopeVisibility: .hidden),
+                    .init(type: "customizedReporting", content: "客製化報表編製", serviceScopeVisibility: .hidden),
                     .init(type: "businessTaxFiling", content: "營業稅申報作業"),
                     .init(type: "provisionalIncomeTaxReturnFiling", content: "年度中暫繳申報"),
-                    .init(type: "financialSettlement", content: "年底結算作業"),
+                    // 兩個帳別都不印（母版皆劃掉）。定義保留：存量案件勾過這一項，
+                    // 從陣列刪掉會讓 GetServiceScope 查無 workItemType 而 throw，整份 PDF 500。
+                    .init(type: "financialSettlement", content: "年底結算作業", serviceScopeVisibility: .hidden),
                     .init(type: "withholdingStatementFiling", content: "各類給付扣繳(股利)憑單申報作業"),
                     .init(type: "profitseekingEnterpriseIncomeTaxFiling", content: "營利事業所得稅結算申報作業"),
                     .init(type: "undistributedEarningsFiling", content: "未分配盈餘結算申報作業"),
-                    .init(type: "costAnalysis", content: "成本表編製作業"),
                 ],
-                // 酬金名稱帶營所稅申報方式（PBI 3b81b546）：展開後如「稅務帳務處理作業-書審申報 (設立完成後開始)」。
-                // 裸 key＝預設長描述（書審申報），glance 可切短描述（書審）；申報方式 config 缺時 OC 發空字串 → 殘「-」，
-                // 與既有空值殘留慣例一致（如 %AccountingStart% 空字串殘 trailing space）。
+                // 1150828 母版的酬金列只有「{名稱}(114年3月開始)」，沒有營所稅申報方式那一段
+                // （PBI 3b81b546 加的）。`%ProfitseekingEnterpriseIncomeTaxFiling%` 變數本身留在系統裡
+                // 不刪，只是這個 format 不再引用它。
                 paymentItemNameFormat: PaymentItemNameFormat(
-                    template: "{name}-\(TemplateVariableConcept.profitseekingEnterpriseIncomeTaxFiling.placeholder()) \(TemplateVariableConcept.accountingStart.placeholder())"
+                    template: "{name}\(TemplateVariableConcept.accountingStart.placeholder())"
                 ))
         }
     }
@@ -134,17 +161,20 @@ public struct ServiceItem: Codable, Sendable {
         get{
             .init(
                 type: "AccountingReform",
-                name: "會計帳務重整作業",
+                name: "帳務整理作業",
+                taxAccountName: "稅務整理作業",
                 alias: "整帳",
                 primary: false,
                 tags: [
                     "ServiceItem/AccountingReform"
                 ],
                 workItems: [
-                    .init(type: "accountingReform", content: "會計帳務重整作業"),
+                    .init(type: "accountingReform", content: "帳務整理作業"),
                 ],
+                // 1150917 母版兩個帳別的酬金列都寫「整理費(期間)」，不是服務項目名稱，
+                // 所以這裡不帶 `{name}`。`name` / `taxAccountName` 仍供其它呈現用（整帳不進服務範圍）。
                 paymentItemNameFormat: PaymentItemNameFormat(
-                    template: "{name}\(TemplateVariableConcept.reformPeriod.placeholder())"
+                    template: "整理費\(TemplateVariableConcept.reformPeriod.placeholder())"
                 ))
         }
     }
@@ -164,7 +194,7 @@ public struct ServiceItem: Codable, Sendable {
         get {
             .init(
                 type: "ProjectAccountingReform",
-                name: "會計帳務重整作業(專案)",
+                name: "帳務整理作業(專案)",
                 alias: "專案整帳",
                 primary: false,
                 tags: [
@@ -174,7 +204,7 @@ public struct ServiceItem: Codable, Sendable {
                 // 共用會讓上游 checkDuplicateWorkItemTypesWithinBundle 擋掉「同 bundle 兩張整帳」，
                 // 而那條限制業務上沒人要求過，純粹是 workItem 撞名的副作用。
                 workItems: [
-                    .init(type: "projectAccountingReform", content: "專案會計帳務重整作業"),
+                    .init(type: "projectAccountingReform", content: "專案帳務整理作業"),
                 ],
                 // variant "project" 不可省略：上游算兩個 key —— `ReformPeriod`（給 accountingReform）
                 // 與 `ReformPeriod|project`（給本卡）。寫成不帶 variant 的 `%ReformPeriod%`，
@@ -192,7 +222,7 @@ public struct ServiceItem: Codable, Sendable {
                 name: "財務報表查核簽證",
                 alias: "財簽",
                 primary: true,
-                term: "財務報表均依照「審計準則」與「企業會計準則」查核並出具財務簽證查核報告書，包括會計師查核報告書、財務報表、財務報表附註及相關財務資訊等項目。",
+                term: "主要係依照「審計準則」查核財務報表是否依照「企業會計準則」編製並出具財務簽證查核報告，內容包括會計師查核報告書、財務報表、財務報表附註及相關財務資訊等項目。",
                 tags: [
                     "ServiceItem/FinancialComplianceAudit",
                 ],
@@ -221,7 +251,7 @@ public struct ServiceItem: Codable, Sendable {
                 scopeTerms: [
                     .init(
                         name: "營利事業所得稅查核簽證",
-                        content: "營利事業所得稅查核簽證主要係包括執行營利事業所得稅結算申報程序及依照「所得稅法」規定進行會計師查核簽證作業及國稅局查核事項協助。"
+                        content: "主要係包括執行營利事業所得稅結算申報程序及依照「所得稅法」規定進行會計師查核簽證作業及國稅局查核事項協助。"
                     ),
                 ],
                 paymentItemNameFormat: PaymentItemNameFormat(
@@ -230,7 +260,7 @@ public struct ServiceItem: Codable, Sendable {
         }
     }
 
-    /// 「營利事業所得稅查核簽證 + 未分配盈餘查核」變體。
+    /// 「營利事業所得稅查核簽證 + 未分配盈餘查核簽證」變體。
     /// 與既有 `taxComplianceAudit` 在 caller 端視為兩個獨立 ServiceItemType：
     /// - 純 `taxComplianceAudit`：行號（獨資合夥）等無法人盈餘可分配的情境
     /// - 本變體：一般公司型態
@@ -242,12 +272,12 @@ public struct ServiceItem: Codable, Sendable {
     /// - **`workItems` 拆兩個**：`taxComplianceAudit` + `undistributedEarningsAudit`，與既有「純」變體的單一
     ///   workItem 結構不同（這是兩 type 在語意上的真正差異點）。
     /// - **`paymentItemNameFormat.template` 共用** `\(TemplateVariableConcept.taxComplianceAuditStartYear.placeholder()){name}`：年份 placeholder 對兩
-    ///   變體都適用；{name} 自然 resolve 為本 ServiceItem 的 `name`（即「...與未分配盈餘查核」全名）。
+    ///   變體都適用；{name} 自然 resolve 為本 ServiceItem 的 `name`（即「...與未分配盈餘查核簽證」全名）。
     public static var taxComplianceAuditAndUndistributedEarningsAudit: Self {
         get {
             .init(
                 type: "TaxComplianceAuditAndUndistributedEarningsAudit",
-                name: "營利事業所得稅查核簽證與未分配盈餘查核",
+                name: "營利事業所得稅查核簽證與未分配盈餘查核簽證",
                 alias: "稅簽",
                 primary: true,
                 tags: [
@@ -255,16 +285,16 @@ public struct ServiceItem: Codable, Sendable {
                 ],
                 workItems: [
                     .init(type: "taxComplianceAudit", content: "營利事業所得稅查核簽證"),
-                    .init(type: "undistributedEarningsAudit", content: "未分配盈餘查核"),
+                    .init(type: "undistributedEarningsAudit", content: "未分配盈餘查核簽證"),
                 ],
                 scopeTerms: [
                     .init(
                         name: "營利事業所得稅查核簽證",
-                        content: "營利事業所得稅查核簽證主要係包括執行營利事業所得稅結算申報程序及依照「所得稅法」規定進行會計師查核簽證作業及國稅局查核事項協助。"
+                        content: "主要係包括執行營利事業所得稅結算申報程序及依照「所得稅法」規定進行會計師查核簽證作業及國稅局查核事項協助。"
                     ),
                     .init(
                         name: "未分配盈餘查核簽證",
-                        content: "主要係分配盈餘結算申報與查核。"
+                        content: "主要係未分配盈餘結算申報與查核。"
                     ),
                 ],
                 paymentItemNameFormat: PaymentItemNameFormat(
@@ -300,10 +330,10 @@ public struct ServiceItem: Codable, Sendable {
         get {
             .init(
                 type: "CashierOperation",
-                name: "出納事務處理作業",
+                name: "出納事務整理作業",
                 alias: "出納",
                 primary: true,
-                term: "由 貴公司委託出納事務相關處理作業，包括以下內容：",
+                term: "由 貴公司委託出納事務相關整理作業，包括以下內容：",
                 tags: [
                     "ServiceItem/CashierOperation"
                 ],
@@ -318,7 +348,7 @@ public struct ServiceItem: Codable, Sendable {
         get {
             .init(
                 type: "PayrollSupportOperation",
-                name: "薪資人力支援作業",
+                name: "薪資人力支援作業 - 10人以內",
                 alias: "薪資",
                 primary: true,
                 term: "由 貴公司委託薪資人力相關支援作業，包括以下內容：",
@@ -343,7 +373,13 @@ public struct ServiceItem: Codable, Sendable {
                             "員工加、退保及調整作業",
                         ]
                     ),
-                    .init(type: "secondGenerationNationalHealthInsuranceFiling", content: "二代健保申報作業"),
+                    // 1150917 母版：「二代健保申報作業。(註五)」—— 註五是補充保費那條備註（uniqueCode 7）。
+                    // 號碼由讀取端依最終清單現算；沒加購補充保費時那條備註不在清單上，引用整段消失。
+                    .init(
+                        type: "secondGenerationNationalHealthInsuranceFiling",
+                        content: "二代健保申報作業{noteRef}",
+                        noteReference: .init(contractNoteUniqueCode: "7", template: "(註{noteNo})")
+                    ),
                     .init(type: "annualInsurancePaymentCertificate", content: "提供年度保險費繳納證明單"),
                     .init(type: "severancePayCalculation", content: "資遣費計算"),
                 ])
@@ -435,8 +471,9 @@ public struct ServiceItem: Codable, Sendable {
                     .init(type: "ctp", content: "年度CTP申報"),
                 ],
                 additionalServiceNameStrategy: .embedsPrice(AdditionalServiceNameFormat(
-                    template: "代辦年度CTP申報(每年3月；加收 {price} 元/家)",
-                    requiresCount: false
+                    template: "代辦年度CTP申報(每年3月；加收{price}元/家){noteRef}",
+                    requiresCount: false,
+                    noteReference: .init(contractNoteUniqueCode: "1", template: "(註{noteNo})")
                 )))
         }
     }
@@ -455,8 +492,9 @@ public struct ServiceItem: Codable, Sendable {
                     .init(type: "assistanceAnnualSupplementaryPremiumDeductionDetailsReporting", content: "年度補充保費扣費明細彙報"),
                 ],
                 additionalServiceNameStrategy: .embedsPrice(AdditionalServiceNameFormat(
-                    template: "代辦年度補充保費扣費明細彙報(每年1月；加收 {price} 元/家)",
-                    requiresCount: false
+                    template: "代辦年度補充保費扣費明細彙報(每年1月；加收{price}元/家{noteRef})",
+                    requiresCount: false,
+                    noteReference: .init(contractNoteUniqueCode: "7", template: "；註{noteNo}")
                 )))
         }
     }
@@ -489,7 +527,7 @@ public struct ServiceItem: Codable, Sendable {
                     .init(type: "assistanceWithCompanyCertificationApplication", content: "代辦工商憑證申請"),
                 ],
                 additionalServiceNameStrategy: .embedsPrice(AdditionalServiceNameFormat(
-                    template: "代辦工商憑證申請(加收 {price} 元)",
+                    template: "代辦工商憑證申請(加收{price}元)",
                     requiresCount: false
                 )))
         }
@@ -509,7 +547,7 @@ public struct ServiceItem: Codable, Sendable {
                     .init(type: "assistanceWithCompanySeal", content: "代刻公司章(大章)"),
                 ],
                 additionalServiceNameStrategy: .embedsPrice(AdditionalServiceNameFormat(
-                    template: "代刻公司章(大章) {count} 枚(加收 {price} 元)",
+                    template: "代刻公司章(大章) {count} 枚(加收{price}元)",
                     requiresCount: true
                 )))
         }
@@ -529,7 +567,7 @@ public struct ServiceItem: Codable, Sendable {
                     .init(type: "assistanceWithChairmanSeal", content: "代刻負責人章(小章)"),
                 ],
                 additionalServiceNameStrategy: .embedsPrice(AdditionalServiceNameFormat(
-                    template: "代刻負責人章(小章) {count} 枚(加收 {price} 元)",
+                    template: "代刻負責人章(小章) {count} 枚(加收{price}元)",
                     requiresCount: true
                 )))
         }
@@ -549,7 +587,7 @@ public struct ServiceItem: Codable, Sendable {
                     .init(type: "assistanceWithCompanyConvenienceSeal", content: "代刻公司便章(大)"),
                 ],
                 additionalServiceNameStrategy: .embedsPrice(AdditionalServiceNameFormat(
-                    template: "代刻公司便章(大)各 {count} 枚(加收 {price} 元)",
+                    template: "代刻公司便章(大)各 {count} 枚(加收{price}元)",
                     requiresCount: true
                 )))
         }
@@ -569,7 +607,7 @@ public struct ServiceItem: Codable, Sendable {
                     .init(type: "assistanceWithChairmanConvenienceSeal", content: "代刻公司便章(小)"),
                 ],
                 additionalServiceNameStrategy: .embedsPrice(AdditionalServiceNameFormat(
-                    template: "代刻公司便章(小)各 {count} 枚(加收 {price} 元)",
+                    template: "代刻公司便章(小)各 {count} 枚(加收{price}元)",
                     requiresCount: true
                 )))
         }
@@ -589,7 +627,7 @@ public struct ServiceItem: Codable, Sendable {
                     .init(type: "assistanceWithInvoiceSeal", content: "代刻發票章"),
                 ],
                 additionalServiceNameStrategy: .embedsPrice(AdditionalServiceNameFormat(
-                    template: "代刻發票章 {count} 枚(加收 {price} 元)",
+                    template: "代刻發票章 {count} 枚(加收{price}元)",
                     requiresCount: true
                 )))
         }
@@ -609,7 +647,7 @@ public struct ServiceItem: Codable, Sendable {
                     .init(type: "assistanceWithLaborAndHealthInsuranceInsuredUnitSetting", content: "代辦勞健保投保單位設立"),
                 ],
                 additionalServiceNameStrategy: .embedsPrice(AdditionalServiceNameFormat(
-                    template: "代辦勞健保投保單位設立(加收 {price} 元)",
+                    template: "代辦勞健保投保單位設立(加收{price}元)",
                     requiresCount: false
                 )))
         }
@@ -629,7 +667,7 @@ public struct ServiceItem: Codable, Sendable {
                     .init(type: "ownerOccupiedResidencePartForBusinessApplication", content: "自用住宅申請部分供營業用"),
                 ],
                 additionalServiceNameStrategy: .embedsPrice(AdditionalServiceNameFormat(
-                    template: "自用住宅申請部分供營業用(加收 {price} 元)",
+                    template: "自用住宅申請部分供營業用(加收{price}元)",
                     requiresCount: false
                 )))
         }
