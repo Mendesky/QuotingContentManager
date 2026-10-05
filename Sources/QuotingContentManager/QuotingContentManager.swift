@@ -143,7 +143,7 @@ extension QuotingContentManager {
     public var contractHeader: Copywriting {
         get {
             .init(
-                title: "承 貴公司委任本事務所辦理有關\(TemplateVariableConcept.serviceItemNames.placeholder())之專業服務，至深感荷。謹將服務內容及酬金等分別說明如后，敬請卓察賜覆為禱。",
+                title: "承 貴公司委任本事務所辦理有關\(TemplateVariableConcept.serviceItemNames.placeholder())之專業服務，至深感荷。謹將服務內容及酬金等分別說明如後，敬請卓察賜覆為禱。",
                 content: "感謝 貴公司對本事務所的支持與愛護，本事務所本著積極服務顧客的熱忱，以及專業智慧的多元服務，特將本事務所受託辦理有關\(TemplateVariableConcept.serviceItemNames.placeholder())之專業服務的內容概述如後，期盼此項合作能協助 貴公司提升\(TemplateVariableConcept.accountingWorkName.placeholder())品質，俾能符合相關稅務法令和企業會計準則之規定。茲將委任之目的、服務範圍、貴公司協助事項、酬金、權利義務事項及同意函列示如下：",
                 taxAccountContent: "感謝 貴公司對本事務所的支持與愛護，本事務所本著積極服務顧客的熱忱，以及專業智慧的多元服務，特將本事務所受託辦理有關\(TemplateVariableConcept.serviceItemNames.placeholder())之專業服務的內容概述如後，期盼此項合作能協助 貴公司提升稅務申報品質，俾能符合相關稅務法令和企業會計準則之規定。茲將委任之目的、服務範圍、貴公司協助事項、酬金、權利義務事項及同意函列示如下："
             )
@@ -170,7 +170,7 @@ extension QuotingContentManager {
     /// 同 `purpose`：「提升整體%AccountingWorkName%品質」兩個帳別共用。
     public var serviceScope: Copywriting {
         get {
-            .init(title: "服務範圍及內容", content: "本項專案作業之服務範圍將根據相關稅務法令、企業會計準則與會計師查核簽證準則之規定，由 貴公司委託本事務所辦理有關\(TemplateVariableConcept.serviceItemNames.placeholder())之專業服務，俾能符合相關法令規定與提升整體\(TemplateVariableConcept.accountingWorkName.placeholder())品質。有關具體服務事項如下：")
+            .init(title: "服務範圍及內容", content: "本項專案作業之服務範圍將根據相關稅務法令、企業會計準則、會計師查核簽證規則及辦法之規定，由 貴公司委託本事務所辦理有關\(TemplateVariableConcept.serviceItemNames.placeholder())之專業服務，俾能符合相關法令規定與提升整體\(TemplateVariableConcept.accountingWorkName.placeholder())品質。有關具體服務事項如下：")
         }
     }
 

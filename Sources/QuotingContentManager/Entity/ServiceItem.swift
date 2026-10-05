@@ -103,7 +103,7 @@ public struct ServiceItem: Codable, Sendable {
     /// `{name}` 由本 method 替換為 displayName；`%xxx%` placeholder 保留交由 frontend 展開。
     /// 若 serviceItem 沒有設定 `paymentItemNameFormat`，回 nil（caller 端 fallback 為 displayName 即可）。
     public func paymentItemName(for accountingCategory: AccountingCategory?) -> String? {
-        paymentItemNameFormat?.resolve(name: displayName(for: accountingCategory))
+        paymentItemNameFormat?.resolve(name: displayName(for: accountingCategory), for: accountingCategory)
     }
 
 
@@ -151,8 +151,11 @@ public struct ServiceItem: Codable, Sendable {
                 // 1150828 母版的酬金列只有「{名稱}(114年3月開始)」，沒有營所稅申報方式那一段
                 // （PBI 3b81b546 加的）。`%ProfitseekingEnterpriseIncomeTaxFiling%` 變數本身留在系統裡
                 // 不刪，只是這個 format 不再引用它。
+                // 稅務帳的酬金列寫「稅務申報服務(…開始)」，不帶「作業」——和稅務帳的服務名稱
+                // （taxAccountName「稅務申報服務作業」）不同字，所以另給一份稅務帳 template。
                 paymentItemNameFormat: PaymentItemNameFormat(
-                    template: "{name}\(TemplateVariableConcept.accountingStart.placeholder())"
+                    template: "{name}\(TemplateVariableConcept.accountingStart.placeholder())",
+                    taxAccountTemplate: "稅務申報服務\(TemplateVariableConcept.accountingStart.placeholder())"
                 ))
         }
     }

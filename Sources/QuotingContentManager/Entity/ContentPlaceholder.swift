@@ -22,7 +22,7 @@
 /// - `{noteRef}` 要分兩段，是因為**號碼**由讀取端算（取決於最終印出哪些備註），**寫法**由 QCM 定
 ///   （見 `ContractNoteReference`）。
 public enum ContentPlaceholder: String, CaseIterable, Sendable {
-    /// 服務項目的顯示名稱。由 `PaymentItemNameFormat.resolve(name:)` 替換。
+    /// 服務項目的顯示名稱。由 `PaymentItemNameFormat.resolve(name:for:)` 替換。
     case name = "{name}"
     /// 附加服務的金額（中文單位）。由 `AdditionalServiceNameFormat.render` 替換。
     case price = "{price}"

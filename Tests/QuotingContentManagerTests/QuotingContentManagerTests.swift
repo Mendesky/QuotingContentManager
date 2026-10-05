@@ -34,9 +34,10 @@ import Testing
 // `%ProfitseekingEnterpriseIncomeTaxFiling%` 變數本身仍留在系統裡，只是這個 format 不再引用。
 @Test func `accounting paymentItemName drops filing method segment`() async throws {
     let item = ServiceItem.accounting
-    #expect(item.paymentItemName(for: .taxAccount) == "稅務申報服務作業%AccountingStart%")
+    #expect(item.paymentItemName(for: .taxAccount) == "稅務申報服務%AccountingStart%")
     #expect(item.paymentItemName(for: .financialAccount) == "帳務整理作業%AccountingStart%")
     #expect(item.paymentItemNameFormat?.template.contains("ProfitseekingEnterpriseIncomeTaxFiling") == false)
+    #expect(item.paymentItemNameFormat?.taxAccountTemplate?.contains("ProfitseekingEnterpriseIncomeTaxFiling") == false)
 }
 
 // 暫繳簽證：單一 workItem（複用記帳暫繳的 type 與文案）、無 term/scopeTerms（服務範圍呈現名稱＋條列）、

@@ -66,6 +66,18 @@ struct CurrentMasterVariableTests {
         }
     }
 
+    /// 稅務帳母版原句（%ServiceItemNames% 以財簽＋稅簽＋記帳展開）：
+    /// 「本項專案作業之服務範圍將根據相關稅務法令、企業會計準則、會計師查核簽證規則及辦法之規定，由 貴公司委託
+    /// 本事務所辦理有關財務報表查核簽證、營利事業所得稅查核簽證與未分配盈餘查核簽證及稅務申報服務作業之專業服務，
+    /// 俾能符合相關法令規定與提升整體稅務申報服務品質。有關具體服務事項如下：」
+    @Test("服務範圍前言：依「會計師查核簽證規則及辦法」之規定")
+    func serviceScopeHeading() {
+        let serviceItemNames = TemplateVariableConcept.serviceItemNames.placeholder()
+        let tax = CurrentMaster.expanded(qcm.serviceScope.content, for: CurrentMaster.tax)
+        #expect(tax == "本項專案作業之服務範圍將根據相關稅務法令、企業會計準則、會計師查核簽證規則及辦法之規定，由 貴公司委託本事務所辦理有關\(serviceItemNames)之專業服務，俾能符合相關法令規定與提升整體稅務申報服務品質。有關具體服務事項如下：")
+        #expect(!qcm.serviceScope.content.contains("會計師查核簽證準則"), "舊用字不得出現")
+    }
+
     @Test("酬金補充說明與記帳付款條件註共用 template，且不寫死「處理」")
     func paymentItemAndAccountingNoteShareTemplate() throws {
         let supplementary = try #require(qcm.fetchPaymentItems(serviceItem: "Accounting").first).content
@@ -93,6 +105,19 @@ struct CurrentMasterLetterAndHeaderTests {
         let content = qcm.letter.content
         #expect(content.hasPrefix("茲將附上 貴公司有關"))
         #expect(!content.contains(TemplateVariableConcept.quotingCaseName.placeholder()), "信件不該再帶公司名變數")
+    }
+
+    @Test("主旨：「分別說明如後」用「後」不用「后」")
+    func contractHeaderSubjectUsesHou() {
+        #expect(qcm.contractHeader.title.contains("謹將服務內容及酬金等分別說明如後，敬請卓察賜覆為禱。"))
+    }
+
+    /// 「后」在這份文件裡都是「後」的誤植（說明如後、概述如後…），整份目錄掃一遍，不只主旨。
+    @Test("全部文案不出現「后」")
+    func noVariantHouAnywhere() {
+        for entry in QCMTextCatalog.all() {
+            #expect(!entry.text.contains("后"), "\(entry.location) 出現「后」，應為「後」")
+        }
     }
 
     /// 兩份母版句型不同（不只是名詞不同），一個變數表達不了，所以句子本身有兩版。
@@ -334,6 +359,18 @@ struct CurrentMasterServiceScopeTests {
 struct CurrentMasterPaymentTests {
 
     private let qcm = CurrentMaster.qcm
+
+    /// 稅務帳的酬金列寫「稅務申報服務」，**不帶「作業」**——和稅務帳的服務名稱（「稅務申報服務作業」，
+    /// 服務範圍標題在用）不同字。一套帳仍是服務名稱「帳務整理作業」。
+    @Test("記帳酬金列：稅務帳「稅務申報服務」不帶作業，一套帳「帳務整理作業」")
+    func accountingPaymentItemName() throws {
+        let accounting = try #require(qcm.getServiceItem(type: "Accounting"))
+        let start = TemplateVariableConcept.accountingStart.placeholder()
+        #expect(accounting.paymentItemName(for: CurrentMaster.tax) == "稅務申報服務\(start)")
+        #expect(accounting.paymentItemName(for: CurrentMaster.standard) == "帳務整理作業\(start)")
+        // 酬金與服務名稱分開：服務範圍標題照舊帶「作業」。
+        #expect(accounting.displayName(for: CurrentMaster.tax) == "稅務申報服務作業")
+    }
 
     /// 兩份母版的整帳酬金列都寫「整理費(期間)」，不是服務項目名稱。
     @Test("整帳酬金列：整理費")
