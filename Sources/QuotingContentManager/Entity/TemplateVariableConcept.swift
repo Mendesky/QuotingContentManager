@@ -44,6 +44,9 @@ public enum TemplateVariableConcept: String, CaseIterable, Sendable, Codable {
     case taxComplianceAuditStartYear = "TaxComplianceAuditStartYear"
     case companyRegistrationRegion = "CompanyRegistrationRegion"
     case companyRegistrationShareholder = "CompanyRegistrationShareholder"
+    /// 行號（獨資合夥）的「獨資／合夥」：依該 bundle 工商登記卡的股東人數（shareholderCount）
+    /// 1 人 → 獨資、>1 人 → 合夥；沒有股東人數就不發。供行號版工商登記備註（uniqueCode 17）引用。
+    case soleProprietorshipOrPartnershipName = "SoleProprietorshipOrPartnershipName"
     case profitseekingEnterpriseIncomeTaxFiling = "ProfitseekingEnterpriseIncomeTaxFiling"
     case accountingPeriod = "AccountingPeriod"
     case accountingBilling = "AccountingBilling"
@@ -75,6 +78,7 @@ public enum TemplateVariableConcept: String, CaseIterable, Sendable, Codable {
         case .accountingStart, .reformPeriod,
              .financialComplianceAuditStartYear, .taxComplianceAuditStartYear,
              .companyRegistrationRegion, .companyRegistrationShareholder,
+             .soleProprietorshipOrPartnershipName,
              .profitseekingEnterpriseIncomeTaxFiling,
              .accountingPeriod, .accountingBilling,
              .cashierPeriod, .cashierBilling,

@@ -408,14 +408,18 @@ public struct ServiceItem: Codable, Sendable {
                 "ServiceItem/CompanyRegistration"
             ],
             workItems: [
-                .init(type: "companyNameAndBusinessScopeReservation", content: "公司名稱預查"),
-                .init(type: "economicMinistryRegistration", content: "公司設立登記"),
+                // 行號（獨資合夥）依商業登記法向地方政府辦商業登記，不是向經濟部辦公司登記 → A/B 改印行號用字
+                // （消費端以 `WorkItem.displayContent(forTaxAccount:organizationType:)` 分流）。
+                .init(type: "companyNameAndBusinessScopeReservation", content: "公司名稱預查", soleProprietorshipOrPartnershipContent: "商業登記名稱預查"),
+                .init(type: "economicMinistryRegistration", content: "公司設立登記", soleProprietorshipOrPartnershipContent: "商業設立登記"),
                 .init(type: "regulationsGoverningAuditingAndAttestationCertification", content: "設立資本額查核簽證"),
                 .init(type: "antiMoneyLaunderingCertification", content: "防洗錢查核簽證"),
                 .init(type: "exporterImporterRegistration", content: "國貿局進出口登記"),
                 .init(type: "companyRegistration", content: "國稅局營業登記"),
                 .init(type: "uniformInvoicePurchasing", content: "國稅局購票證申報"),
                 .init(type: "ctpOfCompanyRegistration", content: "經濟部CTP申報事宜"),
+                // 只有行號可選（OC 端 organizationType 限制＋前端只對行號顯示）；與 uniformInvoicePurchasing 互斥。
+                .init(type: "smallScaleUniformInvoiceExemption", content: "申請小規模免用統一發票"),
             ],
             paymentItemNameFormat: paymentItemNameFormat)
     }

@@ -13,7 +13,10 @@ public struct ContractNoteManager: Sendable {
         .init(uniqueCode: "2", traits: ["general", "Tip/benefit"], weight: 0, content: """
         最新稅務訊息通知，本事務所另將不定期以電子郵件寄送最新稅務法令之變更、稅捐獎勵減免等有關訊息供　貴公司參考，亦可免費參加本所舉辦之教育訓練課程，以使　貴公司與本事務所共同成長。
         """),
-        .init(uniqueCode: "3", traits: ["ServiceItem/CompanyRegistration"], weight: 66, content: """
+        // 3 / 15 是公司版（含其他非行號型態）；行號版為 18 / 17，以組織型態 tag 分流 —— 見 18 上方說明。
+        .init(uniqueCode: "3", traits: [
+            .init(tags: ["ServiceItem/CompanyRegistration"], excluded: [OrganizationType.soleProprietorshipOrPartnership.contractNoteTag]),
+        ], weight: 66, content: """
         工商登記費用不包含政府規費、投審司（外國人）、動資查核、工廠及特許項目之登記及代墊之什項費用(依其收據請款)，服務公費及代墊費用請於辦理完成時支付。
         如股東超過5人，第6位起每位加收新台幣500元之防制洗錢查核費。
         """),
@@ -108,8 +111,27 @@ public struct ContractNoteManager: Sendable {
         .init(uniqueCode: "14", traits: ["ServiceItem/Accounting"], weight: 5, content: """
         採非稅務簽證申報之案件當年度若需協助國稅局營所稅查核，將另與　貴公司討論服務費報價金額。
         """),
-        .init(uniqueCode: "15", traits: ["ServiceItem/CompanyRegistration"], weight: 67, content: """
+        .init(uniqueCode: "15", traits: [
+            .init(tags: ["ServiceItem/CompanyRegistration"], excluded: [OrganizationType.soleProprietorshipOrPartnership.contractNoteTag]),
+        ], weight: 67, content: """
         工商登記處理作業：\(TemplateVariableConcept.organizationTypeName.placeholder())、\(TemplateVariableConcept.capital.placeholder(variant: "exact"))、\(TemplateVariableConcept.companyRegistrationRegion.placeholder())、\(TemplateVariableConcept.companyRegistrationShareholder.placeholder())。
+        """),
+        // 行號（獨資合夥）版工商登記備註：17 對應 15、18 對應 3。行號依商業登記法辦商業登記
+        // （不是向經濟部辦公司登記）—— 沒有動資查核、也沒有股東超過 5 人的防制洗錢查核費。
+        //
+        // 分流靠 OC 為每個案件多帶的組織型態 tag（`OrganizationType.contractNoteTag`）：行號版要求它、
+        // 公司版以 `excluded` 排除它。trait 刻意**保留** `ServiceItem/CompanyRegistration` ——
+        // OC `ContractNoteSynchronizer` 的 stale 清理只處理 trait 含 `ServiceItem/` 前綴的 uniqueCode，
+        // 少了它，改型態或移除工商登記卡後這兩筆會殘留在報價單上。
+        .init(uniqueCode: "17", traits: [
+            .init(tags: ["ServiceItem/CompanyRegistration", OrganizationType.soleProprietorshipOrPartnership.contractNoteTag]),
+        ], weight: 67, content: """
+        工商登記處理作業：\(TemplateVariableConcept.soleProprietorshipOrPartnershipName.placeholder())、\(TemplateVariableConcept.capital.placeholder(variant: "exact"))、\(TemplateVariableConcept.companyRegistrationRegion.placeholder())、\(TemplateVariableConcept.companyRegistrationShareholder.placeholder())。
+        """),
+        .init(uniqueCode: "18", traits: [
+            .init(tags: ["ServiceItem/CompanyRegistration", OrganizationType.soleProprietorshipOrPartnership.contractNoteTag]),
+        ], weight: 66, content: """
+        工商登記費用不包含政府規費、投審司（外國人）、工廠及特許項目之登記及代墊之什項費用(依其收據請款)，服務公費及代墊費用請於辦理完成時支付。
         """),
     ]
 

@@ -27,4 +27,15 @@ public enum OrganizationType: String, Codable, Sendable, CaseIterable {
             nil
         }
     }
+
+    /// 合約備註 trait tag 的前綴。消費端（OC）以此辨識「挑選結果依組織型態而定」的備註。
+    public static let contractNoteTagPrefix = "OrganizationType/"
+
+    /// 挑合約備註用的組織型態 trait tag：`OrganizationType/<rawValue>`（例：`OrganizationType/soleProprietorshipOrPartnership`）。
+    ///
+    /// 消費端（OC）為每個案件在 ServiceItem tag 集合之外多帶這一個，`ContractNoteManager` 以 `tags` / `excluded`
+    /// 分流行號與公司版的工商登記備註（uniqueCode 3/15 ↔ 18/17）。字串只存在此處一份，兩端都從這裡取。
+    public var contractNoteTag: String {
+        "\(Self.contractNoteTagPrefix)\(rawValue)"
+    }
 }
