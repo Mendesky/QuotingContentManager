@@ -77,7 +77,10 @@ public struct ContractNoteManager: Sendable {
         //
         // 代墊費用那段**無條件**，但註二整條只在有財簽／稅簽／記帳任一時才出現，
         // 所以純工商登記的案子連註二都沒有，不會印到它。
-        .init(uniqueCode: "17", traits: [
+        //
+        // 編號 21：17／18 已是行號（獨資合夥）的工商登記備註；19／20 跳過——舊系統（QuotingContext）搬來的
+        // 備註帶的是舊系統的編號，19／20 在已成交的報價單上仍在用，撤回成交解鎖後同步會把它們當成同號的這條。
+        .init(uniqueCode: "21", traits: [
             "ServiceItem/FinancialComplianceAudit",
             "ServiceItem/TaxComplianceAudit",
             "ServiceItem/Accounting",
@@ -91,8 +94,8 @@ public struct ContractNoteManager: Sendable {
         ], terminator: "。"),
 
         // ── 已被註一／註二取代：4 財簽、6 稅簽、8 記帳 ──────────────────────────
-        // 1150828 母版改版前，「巨額變動＋付款條件」是三家各一條；改版後併成上面的 16（註一）與 17（註二）。
-        // 標 deprecated 而不是刪除：既有報價單同步時要清掉它們，否則會和 16/17 同一個主題印兩次。
+        // 1150828 母版改版前，「巨額變動＋付款條件」是三家各一條；改版後併成上面的 16（註一）與 21（註二）。
+        // 標 deprecated 而不是刪除：既有報價單同步時要清掉它們，否則會和 16/21 同一個主題印兩次。
         // 內容照 main 上的原文保留，只供辨識，不會再被帶出。
         .init(deprecated: true, uniqueCode: "4", traits: ["ServiceItem/FinancialComplianceAudit"], weight: 75, content: """
         \(TemplateVariableConcept.financialComplianceAuditGroundName.placeholder())若有巨額變動，將另與　貴公司討論報價金額。

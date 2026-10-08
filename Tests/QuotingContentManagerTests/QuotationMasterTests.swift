@@ -85,7 +85,7 @@ struct CurrentMasterVariableTests {
         #expect(CurrentMaster.expanded(supplementary, for: CurrentMaster.standard).hasPrefix("帳務整理作業依照預估年營收計"))
 
         // 記帳的付款條件在註二裡，用 allSegmentsJoined 取整條來驗用字。
-        let paymentNote = try #require(qcm.getNote(uniqueCode: "17")).allSegmentsJoined
+        let paymentNote = try #require(qcm.getNote(uniqueCode: "21")).allSegmentsJoined
         #expect(CurrentMaster.expanded(paymentNote, for: CurrentMaster.tax).contains("稅務申報服務作業費用"))
         #expect(CurrentMaster.expanded(paymentNote, for: CurrentMaster.standard).contains("帳務整理作業費用"))
         #expect(!paymentNote.contains("處理作業費用"))
@@ -420,7 +420,7 @@ struct CurrentMasterContractNoteTests {
 
     @Test("註二簽證付款：用具體日期")
     func noteTwoUsesConcreteDates() throws {
-        let content = try #require(qcm.getNote(uniqueCode: "17")).allSegmentsJoined
+        let content = try #require(qcm.getNote(uniqueCode: "21")).allSegmentsJoined
         #expect(content.hasPrefix("簽證公費請於當年度12月31日前支付半數，另外半數請於次年度5月31日前支付"))
         #expect(!content.contains("當年度末日"))
         #expect(!content.contains("次年度五月末日"))
@@ -570,7 +570,7 @@ struct CompositeContractNoteTests {
 
     @Test("註二 — 財簽＋稅簽＋記帳：簽證那句去重成一次")
     func noteTwoWithEverything() throws {
-        let content = try #require(try composed("17", [financialAudit, taxAudit, accounting]))
+        let content = try #require(try composed("21", [financialAudit, taxAudit, accounting]))
         #expect(content == """
         簽證公費請於當年度12月31日前支付半數，另外半數請於次年度5月31日前支付；稅務申報服務作業費用%AccountingPeriod%，並%AccountingBilling%，並應支付至本事務所指定之銀行帳戶。
         承辦委任事項所發生之代墊費用，包括機票、簽證、住宿等，另行檢具相關憑證向 貴公司請款。
@@ -581,7 +581,7 @@ struct CompositeContractNoteTests {
 
     @Test("註二 — 只有簽證沒有記帳：中段消失，標點要收斂")
     func noteTwoAuditOnly() throws {
-        #expect(try composed("17", [financialAudit]) == """
+        #expect(try composed("21", [financialAudit]) == """
         簽證公費請於當年度12月31日前支付半數，另外半數請於次年度5月31日前支付。
         承辦委任事項所發生之代墊費用，包括機票、簽證、住宿等，另行檢具相關憑證向 貴公司請款。
         """)
@@ -589,7 +589,7 @@ struct CompositeContractNoteTests {
 
     @Test("註二 — 只有記帳：簽證那句消失，由記帳那段起頭")
     func noteTwoAccountingOnly() throws {
-        #expect(try composed("17", [accounting], for: CurrentMaster.standard) == """
+        #expect(try composed("21", [accounting], for: CurrentMaster.standard) == """
         帳務整理作業費用%AccountingPeriod%，並%AccountingBilling%，並應支付至本事務所指定之銀行帳戶。
         承辦委任事項所發生之代墊費用，包括機票、簽證、住宿等，另行檢具相關憑證向 貴公司請款。
         """)
@@ -600,7 +600,7 @@ struct CompositeContractNoteTests {
     @Test("純工商登記 — 註一與註二都不出現")
     func companyRegistrationOnlyHasNeitherNote() throws {
         #expect(try composed("16", [companyRegistration]) == nil)
-        #expect(try composed("17", [companyRegistration]) == nil)
+        #expect(try composed("21", [companyRegistration]) == nil)
     }
 
     // MARK: 排序
@@ -616,6 +616,6 @@ struct CompositeContractNoteTests {
             "general", "Tip/benefit",
         ]
         let codes = qcm.fetchNotes(subsetOf: tags).map(\.uniqueCode)
-        #expect(codes == ["16", "17", "13", "1", "7", "14", "2"])
+        #expect(codes == ["16", "21", "13", "1", "7", "14", "2"])
     }
 }
