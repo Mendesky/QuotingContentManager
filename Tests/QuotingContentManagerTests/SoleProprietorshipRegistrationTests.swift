@@ -158,12 +158,16 @@ struct SoleProprietorshipWorkItemContentTests {
         #expect(workItem("smallScaleUniformInvoiceExemption")?.content == "申請小規模免用統一發票")
     }
 
-    @Test("帳別版 displayContent(for:) 行為不變（記帳卡稅務帳）")
-    func taxAccountContentUnchanged() {
+    /// 1150828 母版改版後記帳卡沒有稅務帳專用文字了（「平時帳務作業」只剩一套帳的「憑證整理」），
+    /// 這裡只釘住組織型態不影響非工商登記的項目。
+    @Test("帳別版 displayContent(for:) 不受組織型態影響（記帳卡）")
+    func accountingContentUnaffectedByOrganizationType() {
         let accounting = ServiceItem.accounting.workItems.first { $0.type == "accounting" }
-        #expect(accounting?.displayContent(for: .taxAccount) == "平時稅務帳務作業")
-        #expect(accounting?.displayContent(for: .taxAccount, organizationType: .soleProprietorshipOrPartnership) == "平時稅務帳務作業")
-        #expect(accounting?.displayContent(for: .financialAccount, organizationType: .soleProprietorshipOrPartnership) == "平時會計帳務作業")
+        #expect(accounting?.displayContent(for: .financialAccount) == "憑證整理")
+        for category in [AccountingCategory.taxAccount, .financialAccount] {
+            #expect(accounting?.displayContent(for: category, organizationType: .soleProprietorshipOrPartnership)
+                    == accounting?.displayContent(for: category))
+        }
     }
 
     @Test("QuotingContentManager.getWorkItem 取得新子項")

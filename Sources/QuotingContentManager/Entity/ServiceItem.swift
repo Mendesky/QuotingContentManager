@@ -452,7 +452,7 @@ public struct ServiceItem: Codable, Sendable {
             ],
             workItems: [
                 // 行號（獨資合夥）依商業登記法向地方政府辦商業登記，不是向經濟部辦公司登記 → A/B 改印行號用字
-                // （消費端以 `WorkItem.displayContent(forTaxAccount:organizationType:)` 分流）。
+                // （消費端以 `WorkItem.displayContent(for:organizationType:)` 分流）。
                 .init(type: "companyNameAndBusinessScopeReservation", content: "公司名稱預查", soleProprietorshipOrPartnershipContent: "商業登記名稱預查"),
                 .init(type: "economicMinistryRegistration", content: "公司設立登記", soleProprietorshipOrPartnershipContent: "商業設立登記"),
                 .init(type: "regulationsGoverningAuditingAndAttestationCertification", content: "設立資本額查核簽證"),
