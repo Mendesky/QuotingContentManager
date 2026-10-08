@@ -209,11 +209,12 @@ public struct ServiceItem: Codable, Sendable {
                 workItems: [
                     .init(type: "projectAccountingReform", content: "專案帳務整理作業"),
                 ],
+                // 酬金列寫「整理費(專案)(期間)」，比照整帳的「整理費(期間)」，不帶服務名稱（2026-10-05 業務裁定）。
                 // variant "project" 不可省略：上游算兩個 key —— `ReformPeriod`（給 accountingReform）
                 // 與 `ReformPeriod|project`（給本卡）。寫成不帶 variant 的 `%ReformPeriod%`，
                 // 跨 bundle 同時存在兩張整帳時，本卡的酬金名稱會靜默取到另一張的期間。
                 paymentItemNameFormat: PaymentItemNameFormat(
-                    template: "{name}\(TemplateVariableConcept.reformPeriod.placeholder(variant: "project"))"
+                    template: "整理費(專案)\(TemplateVariableConcept.reformPeriod.placeholder(variant: "project"))"
                 ))
         }
     }
@@ -385,7 +386,10 @@ public struct ServiceItem: Codable, Sendable {
                     ),
                     .init(type: "annualInsurancePaymentCertificate", content: "提供年度保險費繳納證明單"),
                     .init(type: "severancePayCalculation", content: "資遣費計算"),
-                ])
+                ],
+                // 酬金列不帶人數級距（2026-10-05 業務裁定）：服務範圍標題是「薪資人力支援作業 - 10人以內」，
+                // 酬金只寫「薪資人力支援作業」，所以酬金另給 template、不用 `{name}`。
+                paymentItemNameFormat: PaymentItemNameFormat(template: "薪資人力支援作業"))
         }
     }
 

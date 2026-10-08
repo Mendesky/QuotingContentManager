@@ -372,6 +372,25 @@ struct CurrentMasterPaymentTests {
         #expect(accounting.displayName(for: CurrentMaster.tax) == "稅務申報服務作業")
     }
 
+    /// 專案整帳比照整帳：酬金列「整理費(專案)(期間)」，不帶服務名稱；服務名稱仍是「帳務整理作業(專案)」。
+    @Test("專案整帳酬金列：整理費(專案)")
+    func projectAccountingReformPaymentItemName() throws {
+        let project = try #require(qcm.getServiceItem(type: "ProjectAccountingReform"))
+        let period = TemplateVariableConcept.reformPeriod.placeholder(variant: "project")
+        for category in CurrentMaster.both {
+            #expect(project.paymentItemName(for: category) == "整理費(專案)\(period)")
+        }
+        #expect(project.displayName(for: CurrentMaster.standard) == "帳務整理作業(專案)")
+    }
+
+    /// 薪資的人數級距只在服務範圍標題，酬金列不帶。
+    @Test("薪資酬金列不帶人數級距，服務範圍標題帶")
+    func payrollPaymentItemNameOmitsHeadcountTier() throws {
+        let payroll = try #require(qcm.getServiceItem(type: "PayrollSupportOperation"))
+        #expect(payroll.paymentItemName(for: nil) == "薪資人力支援作業")
+        #expect(payroll.displayName(for: nil) == "薪資人力支援作業 - 10人以內")
+    }
+
     /// 兩份母版的整帳酬金列都寫「整理費(期間)」，不是服務項目名稱。
     @Test("整帳酬金列：整理費")
     func accountingReformPaymentItemName() throws {
