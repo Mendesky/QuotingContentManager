@@ -17,7 +17,7 @@ public struct ServiceItem: Codable, Sendable {
     /// 稅務帳專用的 `term`；nil 代表兩個帳別共用 `term`。
     ///
     /// 這一對刻意允許「一邊有、一邊沒有」：記帳卡在 1150828 母版裡，稅務帳有前言
-    /// （「由　貴公司委託本事務所代辦相關作業，包括以下內容：」）、一套帳整句被劃掉。
+    /// （「由 貴公司委託本事務所代辦相關作業，包括以下內容：」）、一套帳整句被劃掉。
     /// 寫成 `term: nil` ＋ `taxAccountTerm: "…"` 即可表達。
     public let taxAccountTerm: String?
     public var tags: [String]
@@ -118,7 +118,7 @@ public struct ServiceItem: Codable, Sendable {
                 primary: true,
                 // 一套帳沒有前言（1150828 母版整句劃掉），稅務帳才有——所以是 `term: nil` ＋ `taxAccountTerm`，
                 // 不是兩邊各一句。
-                taxAccountTerm: "由　貴公司委託本事務所代辦相關作業，包括以下內容：",
+                taxAccountTerm: "由 貴公司委託本事務所代辦相關作業，包括以下內容：",
                 tags: [
                     "ServiceItem/Accounting"
                 ],

@@ -66,7 +66,7 @@ public struct ContractNoteManager: Sendable {
             ),
             .init("營業收入總額及憑證量", separator: "、", traits: ["ServiceItem/Accounting"]),
             .init("""
-            若有巨額變動或變更申報方式，將另與　貴公司討論報價金額。
+            若有巨額變動或變更申報方式，將另與 貴公司討論報價金額。
             又 貴公司若後續無營利事業所得稅查核簽證及未分配盈餘查核簽證服務，本事務所就已提供服務範圍，將另行收取費用。
             """),
         ]),
@@ -98,7 +98,7 @@ public struct ContractNoteManager: Sendable {
         // 標 deprecated 而不是刪除：既有報價單同步時要清掉它們，否則會和 16/21 同一個主題印兩次。
         // 內容照 main 上的原文保留，只供辨識，不會再被帶出。
         .init(deprecated: true, uniqueCode: "4", traits: ["ServiceItem/FinancialComplianceAudit"], weight: 75, content: """
-        \(TemplateVariableConcept.financialComplianceAuditGroundName.placeholder())若有巨額變動，將另與　貴公司討論報價金額。
+        \(TemplateVariableConcept.financialComplianceAuditGroundName.placeholder())若有巨額變動，將另與 貴公司討論報價金額。
         簽證公費請於當年度末日前支付半數，另外半數請於次年度五月末日前支付。
         """),
         .init(deprecated: true, uniqueCode: "6", traits: [
@@ -106,7 +106,7 @@ public struct ContractNoteManager: Sendable {
                 "ServiceItem/TaxComplianceAudit",
             ]),
         ], weight: 70, content: """
-        營業收入總額若有巨額變動，將另與　貴公司討論報價金額。
+        營業收入總額若有巨額變動，將另與 貴公司討論報價金額。
         簽證公費請於當年度末日前支付半數，另外半數請於次年度五月末日前支付。
         """),
         .init(deprecated: true, uniqueCode: "8", traits: [
@@ -114,7 +114,7 @@ public struct ContractNoteManager: Sendable {
                 "ServiceItem/Accounting",
             ]),
         ], weight: 65, content: """
-        營業收入總額及憑證量若有巨額變動或變更申報方式，將另與　貴公司討論報價金額。
+        營業收入總額及憑證量若有巨額變動或變更申報方式，將另與 貴公司討論報價金額。
         \(TemplateVariableConcept.accountingWorkName.placeholder())處理作業費用\(TemplateVariableConcept.accountingPeriod.placeholder())，並\(TemplateVariableConcept.accountingBilling.placeholder())，並應支付至本事務所指定之銀行帳戶。
         承辦委任事項所發生之代墊費用，包括機票、簽證、住宿等，另行檢具相關憑證向 貴公司請款。
         """),
@@ -125,7 +125,7 @@ public struct ContractNoteManager: Sendable {
         附加服務選項：代辦年度CTP申報(每年3月)，依據公司法第22條之1是為了配合洗錢防制政策，協助建置完善洗錢防制體制，強化洗錢防制作為，以增加法人(公司)之透明度，並有效掌握公司負責人(董事、監察及經理人)及主要股東(持有超過10%股份或出資額股東)之持股或出資額。
         """),
         .init(uniqueCode: "2", traits: ["general", "Tip/benefit"], weight: 0, content: """
-        最新稅務訊息通知，本事務所另將不定期以電子郵件寄送最新稅務法令之變更、稅捐獎勵減免等有關訊息供　貴公司參考，亦可免費參加本所舉辦之教育訓練課程(除特定專案外)，以使　貴公司與本事務所共同成長。
+        最新稅務訊息通知，本事務所另將不定期以電子郵件寄送最新稅務法令之變更、稅捐獎勵減免等有關訊息供 貴公司參考，亦可免費參加本所舉辦之教育訓練課程(除特定專案外)，以使 貴公司與本事務所共同成長。
         """),
         // 3 / 15 是公司版（含其他非行號型態）；行號版為 18 / 17，以組織型態 tag 分流 —— 見 18 上方說明。
         .init(uniqueCode: "3", traits: [
@@ -158,7 +158,7 @@ public struct ContractNoteManager: Sendable {
                 "ServiceItemConfig/is_providing_electronic_file:true",
             ]),
         ], weight: 50, content: """
-        須提供 \(TemplateVariableConcept.reformPeriod.placeholder()) 相關會計帳務報表及帳冊（含日記帳、實帳戶科目餘額明細）Excel 電子檔，若未能提供將另與　貴公司討論報價金額。
+        須提供 \(TemplateVariableConcept.reformPeriod.placeholder()) 相關會計帳務報表及帳冊（含日記帳、實帳戶科目餘額明細）Excel 電子檔，若未能提供將另與 貴公司討論報價金額。
         """),
         // 1150917 母版拿掉了出納這條備註。標 deprecated：不再被帶出，既有報價單同步時清掉；內容保留。
         .init(deprecated: true, uniqueCode: "10", traits: [
@@ -208,7 +208,7 @@ public struct ContractNoteManager: Sendable {
         3.降低國稅局電腦選案比率，倘若有查帳情況將由本事務所會計師親至國稅局處理之。
         """),
         .init(uniqueCode: "14", traits: ["ServiceItem/Accounting"], weight: 5, content: """
-        採非稅務簽證申報之案件當年度若需協助國稅局營所稅查核，將另與　貴公司討論服務費報價金額。
+        採非稅務簽證申報之案件當年度若需協助國稅局營所稅查核，將另與 貴公司討論服務費報價金額。
         """),
         .init(uniqueCode: "15", traits: [
             .init(tags: ["ServiceItem/CompanyRegistration"], excluded: [OrganizationType.soleProprietorshipOrPartnership.contractNoteTag]),

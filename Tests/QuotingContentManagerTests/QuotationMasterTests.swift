@@ -120,6 +120,15 @@ struct CurrentMasterLetterAndHeaderTests {
         }
     }
 
+    /// 「貴公司」前面一律用半形空格（2026-10-08 使用者裁定）。原本混著全形空格（挪抬）與半形空格，
+    /// 整份目錄掃一遍，之後新增的文案混進全形空格就會紅。
+    @Test("全部文案不出現全形空格")
+    func noIdeographicSpaceAnywhere() {
+        for entry in QCMTextCatalog.all() {
+            #expect(!entry.text.contains("\u{3000}"), "\(entry.location) 出現全形空格，「貴公司」前面請用半形空格")
+        }
+    }
+
     /// 兩份母版句型不同（不只是名詞不同），一個變數表達不了，所以句子本身有兩版。
     @Test("合約說明：稅務帳版把「稅務申報」寫死")
     func contractHeaderSplitsByAccountType() {
@@ -199,7 +208,7 @@ struct CurrentMasterProvisionsTests {
         #expect(standard[1].hasPrefix("本事務所所提供帳務整理作業服務，"))
 
         #expect(tax[2] == standard[2])
-        #expect(tax[2] == "本事務所對　貴公司所提供之各項資料或相關文件，當盡保密之責。")
+        #expect(tax[2] == "本事務所對 貴公司所提供之各項資料或相關文件，當盡保密之責。")
     }
 
     @Test("權利義務(一)：用「整理」不用「蒐集」")
@@ -253,7 +262,7 @@ struct CurrentMasterServiceScopeTests {
         let taxTerms = ServiceItem.accounting.effectiveScopeTerms(for: CurrentMaster.tax)
         #expect(taxTerms.count == 1)
         #expect(taxTerms.first?.name == "稅務申報服務作業")
-        #expect(taxTerms.first?.content == "由　貴公司委託本事務所代辦相關作業，包括以下內容：")
+        #expect(taxTerms.first?.content == "由 貴公司委託本事務所代辦相關作業，包括以下內容：")
         #expect(ServiceItem.accounting.effectiveScopeTerms(for: CurrentMaster.standard).isEmpty)
     }
 
@@ -517,7 +526,7 @@ struct CompositeContractNoteTests {
     //
     // 第一句的主詞隨服務裁剪（2026-10-02 裁定）；第二句不綁稅簽，一律出現。
     private static let noteOneTail = """
-    若有巨額變動或變更申報方式，將另與　貴公司討論報價金額。
+    若有巨額變動或變更申報方式，將另與 貴公司討論報價金額。
     又 貴公司若後續無營利事業所得稅查核簽證及未分配盈餘查核簽證服務，本事務所就已提供服務範圍，將另行收取費用。
     """
 
