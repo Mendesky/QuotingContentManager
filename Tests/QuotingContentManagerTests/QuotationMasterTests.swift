@@ -437,17 +437,10 @@ struct CurrentMasterContractNoteTests {
 
     // MARK: 母版拿掉的備註
 
-    @Test("削價註已刪除，code 5 列入退場清單")
-    func priceUndercuttingNoteRemoved() {
-        #expect(qcm.getNote(uniqueCode: "5") == nil)
-        #expect(!qcm.contractNoteManager.notes.contains { $0.allSegmentsJoined.contains("不以不正當之削價方式") })
-        #expect(ContractNoteManager.retiredUniqueCodes.contains("5"))
-    }
-
-    /// 被註一／註二取代的 4（財簽）、6（稅簽）、8（記帳），以及母版拿掉的 10（出納）、11（薪資）：
+    /// 被註一／註二取代的 4（財簽）、6（稅簽）、8（記帳），以及母版拿掉的 5（削價）、10（出納）、11（薪資）：
     /// 標 deprecated——不再被帶出，但定義要留著，OC 同步時才認得出它們、把既有報價單上的清掉。
     @Test("被取代或拿掉的備註：不再被帶出，定義保留且標 deprecated",
-          arguments: ["4", "6", "8", "10", "11"])
+          arguments: ["4", "5", "6", "8", "10", "11"])
     func deprecatedNotesAreRetainedButNotFetched(uniqueCode: String) throws {
         #expect(qcm.getNote(uniqueCode: uniqueCode) == nil)
 
@@ -456,6 +449,12 @@ struct CurrentMasterContractNoteTests {
         // 用它自己的 trait 去撈，最能證明「條件成立也不會被帶出」。
         let ownTags = note.traits.flatMap { Array($0.tags) }
         #expect(!qcm.fetchNotes(subsetOf: ownTags).map(\.uniqueCode).contains(uniqueCode))
+    }
+
+    @Test("削價註的內容保留原文")
+    func priceUndercuttingNoteContentRetained() throws {
+        let note = try #require(qcm.contractNoteManager.notes.first { $0.uniqueCode == "5" })
+        #expect(note.allSegmentsJoined.hasPrefix("依據會計師職業道德，不以不正當之削價方式"))
     }
 
     @Test("出納備註的內容保留原文")

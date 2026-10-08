@@ -18,7 +18,9 @@
 /// - **從陣列刪除**：同步程式不再認得這個 code，**既有報價單上的這條會一直留著**（只能使用者手動刪）。
 ///   用在「新報價單不再出現，但已經印出去的保留原樣」。刪除時把 code 加進 `retiredUniqueCodes`。
 ///
-/// 已成交的報價單兩種做法都不受影響：Quoting 成交後鎖定，不會再觸發同步。
+/// 已成交的報價單兩種做法都不受影響：Quoting 成交後鎖定，不會再觸發同步。但**取消成交會解鎖**，
+/// 之後一同步就照這張表處理——留著 deprecated 的定義，解鎖的舊報價單才會被清乾淨；刪掉的話舊備註
+/// 會跟取代它的新備註並存。所以退場預設用 deprecated，定義留著的代價只是目錄多幾筆。
 ///
 /// ## uniqueCode 不可重用
 ///
@@ -30,10 +32,7 @@ public struct ContractNoteManager: Sendable {
     /// 從目錄刪除過的 uniqueCode，不可再拿來用（理由見型別說明）。
     ///
     /// 只列「刪除」的；deprecated 的仍留在 `notes` 裡，本來就佔著 code。
-    public static let retiredUniqueCodes: Set<String> = [
-        // 1150828 母版：削價（職業道德）註。既有報價單保留原樣，所以是刪除而不是 deprecated。
-        "5",
-    ]
+    public static let retiredUniqueCodes: Set<String> = []
 
     public var notes: [ContractNoteInfo] = [
         // ── 註一：巨額變動與後續服務費用 ────────────────────────────────
@@ -132,10 +131,16 @@ public struct ContractNoteManager: Sendable {
         工商登記費用不包含政府規費、投審司（外國人）、動資查核、工廠及特許項目之登記及代墊之什項費用(依其收據請款)，服務公費及代墊費用請於辦理完成時支付。
         如股東超過5人，第6位起每位加收新台幣500元之防制洗錢查核費。
         """),
-        // uniqueCode 5（「依據會計師職業道德，不以不正當之削價方式…」）已於 1150828 母版改版刪除。
-        // 它的 trait 是「稅簽＋財簽同時存在」，而母版 A、B 正好都是這個組合卻都沒有這條，
-        // 所以是刻意拿掉、不是沒觸發。選擇刪除（而非 deprecated）：既有報價單上的保留原樣。
-        // 已列入 `retiredUniqueCodes`。
+        // 削價（職業道德）註：1150828 母版拿掉。它的 trait 是稅簽、財簽**任一**（兩個獨立 Trait），
+        // 母版 A、B 都有稅簽與財簽卻都沒有這條，所以是刻意拿掉、不是沒觸發。
+        // 標 deprecated：既有的未成交報價單也要拿掉（2026-10-05 裁定；原本是刪除、保留既有的）。
+        // 內容照 main 上的原文保留，只供辨識，不會再被帶出。
+        .init(deprecated: true, uniqueCode: "5", traits: [
+            "ServiceItem/TaxComplianceAudit",
+            "ServiceItem/FinancialComplianceAudit",
+        ], weight: 10, content: """
+        依據會計師職業道德，不以不正當之削價方式，延攬業務，故若查明有此事實，將比照前事務所收費辦理。
+        """),
         .init(uniqueCode: "7", traits: [
             "ServiceItem/AssistanceAnnualSupplementaryPremiumDeductionDetailsReporting",
         ], weight: 25, content: """
