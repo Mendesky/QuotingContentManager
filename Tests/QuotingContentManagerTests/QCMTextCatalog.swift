@@ -90,6 +90,7 @@ enum QCMTextCatalog {
                 add("\(name).provisions[\(index)].content", provision.content)
                 add("\(name).provisions[\(index)].taxAccountContent", provision.taxAccountContent)
             }
+            add("\(name).closing", section.closing)
         }
 
         add("paymentTitle", qcm.paymentTitle)

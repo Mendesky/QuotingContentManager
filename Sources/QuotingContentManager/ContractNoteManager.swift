@@ -46,13 +46,13 @@ public struct ContractNoteManager: Sendable {
         // 否則會印成「營業收入總額、營業收入總額及憑證量」。這是去重，不是互斥 ——
         // 兩個服務講的是同一個指標，只是記帳多管一個憑證量。
         //
-        // 七種組合各自的結果**以測試為準**：`CompositeContractNoteTests.noteOneSubjectFollowsSelectedServices`
+        // 七種組合各自的結果**以測試為準**：`CompositeContractNoteTests.noteOneFollowsSelectedServices`
         // （QuotationMasterTests.swift）。改這裡的段落或條件時先改那張表，不在註解另抄一份。
         //
         // 主詞一段都沒命中是不可能的：整條備註的 trait 就是這三個的 ANY-of，命中才會出現這條
         // （所以純工商登記的案子連這條都沒有）。
         //
-        // 第二句（後續無簽證服務時另行收費）**不綁稅簽**，只要這條備註出現就印（2026-09 裁定）。
+        // 第二句（後續無簽證服務時另行收費）**只在有稅簽時印**（2026-10-13 裁定；原本 2026-09 裁定為不綁稅簽、一律印）。
         .init(uniqueCode: "16", traits: [
             "ServiceItem/FinancialComplianceAudit",
             "ServiceItem/TaxComplianceAudit",
@@ -65,10 +65,12 @@ public struct ContractNoteManager: Sendable {
                 traits: [.init(tags: ["ServiceItem/TaxComplianceAudit"], excluded: ["ServiceItem/Accounting"])]
             ),
             .init("營業收入總額及憑證量", separator: "、", traits: ["ServiceItem/Accounting"]),
-            .init("""
-            若有巨額變動或變更申報方式，將另與 貴公司討論報價金額。
-            又 貴公司若後續無營利事業所得稅查核簽證及未分配盈餘查核簽證服務，本事務所就已提供服務範圍，將另行收取費用。
-            """),
+            .init("若有巨額變動或變更申報方式，將另與 貴公司討論報價金額。"),
+            .init(
+                "又 貴公司若後續無營利事業所得稅查核簽證及未分配盈餘查核簽證服務，本事務所就已提供服務範圍，將另行收取費用。",
+                separator: "\n",
+                traits: ["ServiceItem/TaxComplianceAudit"]
+            ),
         ]),
 
         // ── 註二：付款條件 ────────────────────────────────────────────────

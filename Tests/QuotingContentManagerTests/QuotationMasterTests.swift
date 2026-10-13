@@ -239,6 +239,16 @@ struct CurrentMasterProvisionsTests {
         #expect(tax[2].contains("利害衝突確認紀錄、稅務申報資訊、內部紀錄"))
         #expect(standard[2].contains("利害衝突確認紀錄、帳務及財務資訊、內部紀錄"))
     }
+
+    @Test("其它約定：準據法是條文之後的獨立一段，不併在(三)")
+    func agreementTermsGoverningLawIsClosing() {
+        let governingLaw = "有關本報價單所生之相關爭議，均應以中華民國法令為準據法。"
+        #expect(qcm.agreementTerms.closing == governingLaw)
+        for category in [CurrentMaster.tax, CurrentMaster.standard] {
+            #expect(qcm.agreementTerms.displayProvisions(for: category).allSatisfy { !$0.contains("準據法") })
+        }
+        #expect(qcm.rightsAndObligations.closing == nil)
+    }
 }
 
 // MARK: - 服務範圍
@@ -524,29 +534,29 @@ struct CompositeContractNoteTests {
     // 註一不含三句報價基準（「…依預估…報價」）：那三句只住在酬金補充說明（`PaymentItemManager`），
     // 不複製進合約注意事項 —— `noteOneExcludesPricingBasis` 釘住這件事，避免 PDF 上印兩次。
     //
-    // 第一句的主詞隨服務裁剪（2026-10-02 裁定）；第二句不綁稅簽，一律出現。
-    private static let noteOneTail = """
-    若有巨額變動或變更申報方式，將另與 貴公司討論報價金額。
-    又 貴公司若後續無營利事業所得稅查核簽證及未分配盈餘查核簽證服務，本事務所就已提供服務範圍，將另行收取費用。
-    """
+    // 第一句的主詞隨服務裁剪（2026-10-02 裁定）；第二句只在有稅簽時出現（2026-10-13 裁定）。
+    private static let noteOneFirstSentenceTail = "若有巨額變動或變更申報方式，將另與 貴公司討論報價金額。"
+    private static let noteOneSecondSentence = "又 貴公司若後續無營利事業所得稅查核簽證及未分配盈餘查核簽證服務，本事務所就已提供服務範圍，將另行收取費用。"
 
-    /// 七種服務組合 × 第一句的主詞（**註一組合規則的唯一一份表**）。
+    /// 七種服務組合 × 第一句的主詞 × 第二句有無（**註一組合規則的唯一一份表**）。
     ///
     /// 記帳那段自己就含「營業收入總額」，所以同時有稅簽時稅簽那段要讓位（`excluded`）——
     /// 否則會印成「營業收入總額、營業收入總額及憑證量」。這是去重，不是互斥。
-    @Test("註一 — 第一句的主詞隨選到的服務裁剪",
+    @Test("註一 — 第一句的主詞隨選到的服務裁剪，第二句只在有稅簽時出現",
           arguments: [
-            (["ServiceItem/FinancialComplianceAudit"], "資產總額"),
-            (["ServiceItem/TaxComplianceAudit"], "營業收入總額"),
-            (["ServiceItem/Accounting"], "營業收入總額及憑證量"),
-            (["ServiceItem/FinancialComplianceAudit", "ServiceItem/TaxComplianceAudit"], "資產總額、營業收入總額"),
-            (["ServiceItem/FinancialComplianceAudit", "ServiceItem/Accounting"], "資產總額、營業收入總額及憑證量"),
-            (["ServiceItem/TaxComplianceAudit", "ServiceItem/Accounting"], "營業收入總額及憑證量"),
+            (["ServiceItem/FinancialComplianceAudit"], "資產總額", false),
+            (["ServiceItem/TaxComplianceAudit"], "營業收入總額", true),
+            (["ServiceItem/Accounting"], "營業收入總額及憑證量", false),
+            (["ServiceItem/FinancialComplianceAudit", "ServiceItem/TaxComplianceAudit"], "資產總額、營業收入總額", true),
+            (["ServiceItem/FinancialComplianceAudit", "ServiceItem/Accounting"], "資產總額、營業收入總額及憑證量", false),
+            (["ServiceItem/TaxComplianceAudit", "ServiceItem/Accounting"], "營業收入總額及憑證量", true),
             (["ServiceItem/FinancialComplianceAudit", "ServiceItem/TaxComplianceAudit", "ServiceItem/Accounting"],
-             "資產總額、營業收入總額及憑證量"),
+             "資產總額、營業收入總額及憑證量", true),
           ])
-    func noteOneSubjectFollowsSelectedServices(tags: [String], subject: String) throws {
-        #expect(try composed("16", tags) == subject + Self.noteOneTail)
+    func noteOneFollowsSelectedServices(tags: [String], subject: String, hasSecondSentence: Bool) throws {
+        let expected = subject + Self.noteOneFirstSentenceTail
+            + (hasSecondSentence ? "\n" + Self.noteOneSecondSentence : "")
+        #expect(try composed("16", tags) == expected)
     }
 
     @Test("註一 — 稅簽＋記帳不會把營業收入總額印兩次")
@@ -555,12 +565,16 @@ struct CompositeContractNoteTests {
         #expect(content.components(separatedBy: "營業收入總額").count - 1 == 1)
     }
 
-    /// 第二句不綁稅簽：只要這條備註出現就印（2026-09 裁定）。
-    @Test("註一 — 第二句不綁稅簽",
-          arguments: [["ServiceItem/FinancialComplianceAudit"], ["ServiceItem/Accounting"]])
-    func noteOneTaxConsultingSentenceAlwaysPrints(tags: [String]) throws {
+    /// 第二句綁稅簽（2026-10-13 裁定；原本 2026-09 裁定為不綁稅簽、一律印）。
+    @Test("註一 — 沒有稅簽時不印第二句",
+          arguments: [
+            ["ServiceItem/FinancialComplianceAudit"],
+            ["ServiceItem/Accounting"],
+            ["ServiceItem/FinancialComplianceAudit", "ServiceItem/Accounting"],
+          ])
+    func noteOneSecondSentenceRequiresTaxAudit(tags: [String]) throws {
         let content = try #require(try composed("16", tags))
-        #expect(content.contains("又 貴公司若後續無營利事業所得稅查核簽證及未分配盈餘查核簽證服務"))
+        #expect(!content.contains("又 貴公司若後續無營利事業所得稅查核簽證及未分配盈餘查核簽證服務"))
     }
 
     @Test("註一不含報價基準 —— 那三句只住在酬金補充說明")
