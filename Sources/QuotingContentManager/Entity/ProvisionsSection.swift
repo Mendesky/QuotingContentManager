@@ -13,9 +13,14 @@ public struct ProvisionsSection: Codable, Sendable {
     /// 所以差異落在條的層級。
     public let provisions: [Provision]
 
-    public init(title: String, provisions: [Provision]) {
+    /// 條文之後**不編號**的獨立一段（例：其它約定事項最後的準據法聲明）。nil ＝ 沒有。
+    /// 不放進最後一條的內文：放進去會被當成那一條的一部分，跟著編號排版。
+    public let closing: String?
+
+    public init(title: String, provisions: [Provision], closing: String? = nil) {
         self.title = title
         self.provisions = provisions
+        self.closing = closing
     }
 
     /// 取出該帳別實際要印的條文。**呼叫端一律走這支**，不要直接讀 `provisions` 的原始字串，
