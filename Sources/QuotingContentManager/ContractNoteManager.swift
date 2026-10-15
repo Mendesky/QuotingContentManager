@@ -53,11 +53,14 @@ public struct ContractNoteManager: Sendable {
         // （所以純工商登記的案子連這條都沒有）。
         //
         // 第二句（後續無簽證服務時另行收費）**只在有稅簽時印**（2026-10-13 裁定；原本 2026-09 裁定為不綁稅簽、一律印）。
+        //
+        // weight 2026-10-15 從 80 改 84：整帳（22）、薪資（23）、出納（24、25）四條要排在這條與註二（21，78）之間。
+        // 這條本來就排第一，往上調不改變任何既有的相對順序。
         .init(uniqueCode: "16", traits: [
             "ServiceItem/FinancialComplianceAudit",
             "ServiceItem/TaxComplianceAudit",
             "ServiceItem/Accounting",
-        ], weight: 80, segments: [
+        ], weight: 84, segments: [
             .init("資產總額", traits: ["ServiceItem/FinancialComplianceAudit"]),
             .init(
                 "營業收入總額",
@@ -94,6 +97,44 @@ public struct ContractNoteManager: Sendable {
             .init("承辦委任事項所發生之代墊費用，包括機票、簽證、住宿等，另行檢具相關憑證向 貴公司請款",
                   separator: "。\n"),
         ], terminator: "。"),
+
+        // ── 註一之後、付款條件之前的四條（2026-10-15 業務裁定）────────────────────
+        // 順序：註一（16）→ 整帳 22 → 薪資 23 → 出納 24、25 → 付款條件（21）。各自只在選到該服務時出現，
+        // 號碼依實際印出的條數往前遞補（例如沒有整帳時，薪資就是註二）。
+        //
+        // 編號從 22 起：1～20 是舊系統（QuotingContext）搬來的備註也在用的編號，同號不同義，
+        // 撤回成交解鎖後同步會把它們當成同一條（見 21 上方說明），所以新備註一律避開。
+
+        // 整帳：期初帳冊電子檔與開帳。只要有整帳（記帳卡下的整理費）就印，不論整帳卡有沒有勾「提供電子檔」；
+        // 專案整帳（整理費(專案)）不印。整帳一定掛在記帳卡下、註一必在，所以有整帳時就是註二。
+        // 整帳的酬金名稱會指回這條（`ServiceItem.accountingReform` 的 `paymentItemNameFormat.noteReference`）。
+        //
+        // 日期全部取自整帳區間：期間（`|plain`／`|short`）、期間最後一天、期間的下一個月（開帳月）。
+        // 取代 9 —— 9 是同一件事（提供電子檔）的舊寫法，且只在勾了提供電子檔時才出現。
+        .init(uniqueCode: "22", traits: ["ServiceItem/AccountingReform"], weight: 83, content: """
+        貴公司應提供\(TemplateVariableConcept.reformPeriod.placeholder(variant: "plain"))相關帳冊及報表(含科目餘額明細表)之電子檔(excel)，本事務所將依 貴公司提供之\(TemplateVariableConcept.reformEndDate.placeholder())報表金額作為\(TemplateVariableConcept.reformOpeningMonth.placeholder())開帳數，且免對於\(TemplateVariableConcept.reformPeriod.placeholder(variant: "short"))帳務做整理覆核，若後續因報表核實表達因素，導致需大量調整，將另與 貴公司討論報價金額。
+        """),
+
+        // 薪資：人數級距加價。1150917 母版拿掉的舊薪資備註是 11（已 deprecated，內容不同）。
+        .init(uniqueCode: "23", traits: ["ServiceItem/PayrollSupportOperation"], weight: 82, content: """
+        薪資人力支援作業基本以每月5人內計算，超過人數(第6位起)每位加價1,000元。
+        """),
+
+        // 出納：兩條都在選到出納時印。用字統一成「整理」（服務名稱是「出納事務整理作業」，1150917 從「處理」改來）。
+        // 25 的內容與 1150917 母版拿掉的 10（deprecated）幾乎相同，但不重新啟用 10，理由同上（舊系統的 10 是職業道德）。
+        .init(uniqueCode: "24", traits: ["ServiceItem/CashierOperation"], weight: 81, content: """
+        出納事務整理作業內容包含：
+        A.每月一次薪資轉帳。
+        B.每月一次廠商批次付款。
+        C.每週一次臨時付款。
+        """),
+        .init(uniqueCode: "25", traits: ["ServiceItem/CashierOperation"], weight: 80, content: """
+        出納事務整理作業內容包含：
+        A.國內轉帳30 筆；每加一筆多50 元。
+        B.國外轉帳10 筆；每加一筆多100 元。
+        C.一次薪資轉帳。
+        *如出納事務整理作業有重複處理，將額外收取處理費用2,000元/次。
+        """),
 
         // ── 已被註一／註二取代：4 財簽、6 稅簽、8 記帳 ──────────────────────────
         // 1150828 母版改版前，「巨額變動＋付款條件」是三家各一條；改版後併成上面的 16（註一）與 21（註二）。
@@ -154,7 +195,11 @@ public struct ContractNoteManager: Sendable {
         // 本段文案曾有「專案整帳」版本（當時的 uniqueCode 16），已於 2026-09-15 移除——
         // 專案整帳不再有「是否提供電子檔」config（OC 寫側擋掉），該 trait 組合永遠不成立。
         // 16 之後被 1150828 改版重用成註一，見型別說明的「uniqueCode 不可重用」。
-        .init(uniqueCode: "9", mutex: .tags(["ServiceItemConfig/is_providing_electronic_file:false"]), traits: [
+        //
+        // 已被 22 取代（2026-10-15）。標 deprecated 不改變任何現行行為 —— OC 同步從不帶
+        // `ServiceItemConfig/` 的 tag，這條本來就帶不出來，同步時也一直被當成不適用而清掉；
+        // 標起來是為了日後有人接上那個 tag 時，不會和 22 同時印出兩條電子檔備註。
+        .init(deprecated: true, uniqueCode: "9", mutex: .tags(["ServiceItemConfig/is_providing_electronic_file:false"]), traits: [
             .init(tags: [
                 "ServiceItem/AccountingReform",
                 "ServiceItemConfig/is_providing_electronic_file:true",

@@ -410,6 +410,46 @@ struct CurrentMasterPaymentTests {
         #expect(payroll.displayName(for: nil) == "薪資人力支援作業 - 10人以內")
     }
 
+    /// 整帳酬金列指回整帳電子檔備註（22）：註號寫在期間那組括號裡（2026-10-15 業務裁定）。
+    @Test("整帳酬金列：註號插在期間括號裡")
+    func accountingReformPaymentItemNameReferencesNote() throws {
+        let reference = try #require(qcm.getServiceItem(type: "AccountingReform")?.paymentItemNameFormat?.noteReference)
+        #expect(reference.contractNoteUniqueCode == "22")
+        #expect(reference.attach(to: "整理費(115年1-4月)", noteNumber: "二") == "整理費(115年1-4月；註二)")
+        #expect(reference.attach(to: "整理費(114年11月-115年4月)", noteNumber: "二") == "整理費(114年11月-115年4月；註二)")
+        #expect(reference.attach(to: "整理費（115年1-4月）", noteNumber: "二") == "整理費（115年1-4月；註二）")
+    }
+
+    /// 整帳區間沒填（`%ReformPeriod%` 展開成空字串）或使用者改過名稱，名稱就不以括號結尾 → 另開一組括號。
+    /// 報價單上沒有那條備註（算不出註號）→ 名稱原樣，不印「(註)」這種殘缺的東西。
+    @Test("整帳酬金列：名稱沒有括號時另開括號，沒有註號時原樣")
+    func accountingReformPaymentItemNameReferenceFallbacks() throws {
+        let reference = try #require(qcm.getServiceItem(type: "AccountingReform")?.paymentItemNameFormat?.noteReference)
+        #expect(reference.attach(to: "整理費", noteNumber: "二") == "整理費(註二)")
+        #expect(reference.attach(to: "整理費(115年1-4月)", noteNumber: nil) == "整理費(115年1-4月)")
+    }
+
+    /// 整帳電子檔備註不印在專案整帳上，所以專案整帳的酬金列也不指回它。
+    @Test("專案整帳酬金列不帶註號")
+    func projectAccountingReformPaymentItemNameHasNoReference() throws {
+        let project = try #require(qcm.getServiceItem(type: "ProjectAccountingReform"))
+        #expect(project.paymentItemNameFormat?.noteReference == nil)
+    }
+
+    /// 酬金名稱引用的備註要是「這個服務項目自己就帶得出來」的那條，否則報價單上永遠找不到它、註號永遠不印。
+    @Test("酬金名稱引用的備註，該服務項目自己就帶得出來")
+    func paymentItemNameReferencesNoteOfItsOwnServiceItem() {
+        var checked = 0
+        for item in qcm.serviceItems {
+            guard let reference = item.paymentItemNameFormat?.noteReference else { continue }
+            checked += 1
+            let fetched = qcm.fetchNotes(subsetOf: Array(item.tags)).map(\.uniqueCode)
+            #expect(fetched.contains(reference.contractNoteUniqueCode),
+                    "\(item.type) 的酬金名稱引用 \(reference.contractNoteUniqueCode)，但這個服務項目帶不出那條備註")
+        }
+        #expect(checked == 1, "目前只有整帳的酬金名稱有註號引用，實得 \(checked)")
+    }
+
     /// 兩份母版的整帳酬金列都寫「整理費(期間)」，不是服務項目名稱。
     @Test("整帳酬金列：整理費")
     func accountingReformPaymentItemName() throws {
@@ -473,12 +513,88 @@ struct CurrentMasterContractNoteTests {
         #expect(note.contains("教育訓練課程(除特定專案外)，"))
     }
 
+    // MARK: 整帳電子檔備註
+
+    @Test("整帳電子檔備註：日期都取自整帳區間")
+    func accountingReformNoteContent() throws {
+        let content = try #require(qcm.getNote(uniqueCode: "22")).allSegmentsJoined
+        #expect(content == "貴公司應提供%ReformPeriod|plain%相關帳冊及報表(含科目餘額明細表)之電子檔(excel)，本事務所將依 貴公司提供之%ReformEndDate%報表金額作為%ReformOpeningMonth%開帳數，且免對於%ReformPeriod|short%帳務做整理覆核，若後續因報表核實表達因素，導致需大量調整，將另與 貴公司討論報價金額。")
+    }
+
+    /// 只要有整帳就印，不看整帳卡有沒有勾提供電子檔；專案整帳不印（2026-10-15 業務裁定）。
+    @Test("整帳電子檔備註：有整帳就出現，不論有無提供電子檔",
+          arguments: [
+            ["ServiceItem/Accounting", "ServiceItem/AccountingReform"],
+            ["ServiceItem/Accounting", "ServiceItem/AccountingReform", "ServiceItemConfig/is_providing_electronic_file:true"],
+            ["ServiceItem/Accounting", "ServiceItem/AccountingReform", "ServiceItemConfig/is_providing_electronic_file:false"],
+          ])
+    func accountingReformNoteAppearsWithReform(tags: [String]) {
+        let codes = qcm.fetchNotes(subsetOf: tags).map(\.uniqueCode)
+        #expect(codes.contains("22"))
+        #expect(!codes.contains("9"), "9 已被 22 取代")
+    }
+
+    @Test("整帳電子檔備註：沒有整帳、或只有專案整帳時不出現",
+          arguments: [
+            ["ServiceItem/Accounting"],
+            ["ServiceItem/ProjectAccountingReform"],
+          ])
+    func accountingReformNoteRequiresReform(tags: [String]) {
+        #expect(!qcm.fetchNotes(subsetOf: tags).map(\.uniqueCode).contains("22"))
+    }
+
+    // MARK: 薪資備註
+
+    @Test("薪資備註：人數級距加價")
+    func payrollNoteContent() throws {
+        let content = try #require(qcm.getNote(uniqueCode: "23")).allSegmentsJoined
+        #expect(content == "薪資人力支援作業基本以每月5人內計算，超過人數(第6位起)每位加價1,000元。")
+    }
+
+    @Test("薪資備註：有薪資就出現，沒有就不出現")
+    func payrollNoteFollowsPayroll() {
+        #expect(qcm.fetchNotes(subsetOf: ["ServiceItem/PayrollSupportOperation"]).map(\.uniqueCode).contains("23"))
+        #expect(!qcm.fetchNotes(subsetOf: ["ServiceItem/Accounting"]).map(\.uniqueCode).contains("23"))
+        #expect(!qcm.fetchNotes(subsetOf: ["ServiceItem/PayrollSupportOperation"]).map(\.uniqueCode).contains("11"), "11 是 deprecated 的舊薪資備註")
+    }
+
+    // MARK: 出納備註
+
+    /// 兩條都在選到出納時印（2026-10-15 業務裁定）；用字統一成服務名稱的「整理」。
+    @Test("出納備註：兩條都印，內容照業務提供")
+    func cashierNotes() throws {
+        let codes = qcm.fetchNotes(subsetOf: ["ServiceItem/CashierOperation"]).map(\.uniqueCode)
+        #expect(codes == ["24", "25"])
+        #expect(try #require(qcm.getNote(uniqueCode: "24")).allSegmentsJoined == """
+        出納事務整理作業內容包含：
+        A.每月一次薪資轉帳。
+        B.每月一次廠商批次付款。
+        C.每週一次臨時付款。
+        """)
+        #expect(try #require(qcm.getNote(uniqueCode: "25")).allSegmentsJoined == """
+        出納事務整理作業內容包含：
+        A.國內轉帳30 筆；每加一筆多50 元。
+        B.國外轉帳10 筆；每加一筆多100 元。
+        C.一次薪資轉帳。
+        *如出納事務整理作業有重複處理，將額外收取處理費用2,000元/次。
+        """)
+    }
+
+    /// 舊的出納備註 10 用過康熙部首「⼀」（U+2F00），新的兩條要用一般的「一」。
+    @Test("出納備註不用康熙部首的「⼀」")
+    func cashierNotesUseRegularYi() throws {
+        for code in ["24", "25"] {
+            #expect(!(try #require(qcm.getNote(uniqueCode: code)).allSegmentsJoined.contains("\u{2F00}")))
+        }
+    }
+
     // MARK: 母版拿掉的備註
 
-    /// 被註一／註二取代的 4（財簽）、6（稅簽）、8（記帳），以及母版拿掉的 5（削價）、10（出納）、11（薪資）：
+    /// 被註一／註二取代的 4（財簽）、6（稅簽）、8（記帳），被整帳電子檔備註 22 取代的 9，
+    /// 以及母版拿掉的 5（削價）、10（出納）、11（薪資）：
     /// 標 deprecated——不再被帶出，但定義要留著，OC 同步時才認得出它們、把既有報價單上的清掉。
     @Test("被取代或拿掉的備註：不再被帶出，定義保留且標 deprecated",
-          arguments: ["4", "5", "6", "8", "10", "11"])
+          arguments: ["4", "5", "6", "8", "9", "10", "11"])
     func deprecatedNotesAreRetainedButNotFetched(uniqueCode: String) throws {
         #expect(qcm.getNote(uniqueCode: uniqueCode) == nil)
 
@@ -640,5 +756,23 @@ struct CompositeContractNoteTests {
         ]
         let codes = qcm.fetchNotes(subsetOf: tags).map(\.uniqueCode)
         #expect(codes == ["16", "21", "13", "1", "7", "14", "2"])
+    }
+
+    // 註一（巨額變動）→ 整帳電子檔 → 薪資 → 出納兩條 → 付款條件 → 工商登記…（2026-10-15 業務裁定）。
+    // 整帳一定掛在記帳卡下、註一必在，所以有整帳時整帳電子檔就是註二、薪資註三、出納註四與註五。
+    @Test("整帳、薪資、出納的備註緊接在註一之後，付款條件往後退")
+    func accountingReformPayrollCashierNoteOrder() {
+        let tags = [
+            accounting, "ServiceItem/AccountingReform", "ServiceItem/PayrollSupportOperation", "ServiceItem/CashierOperation",
+            companyRegistration, "general", "Tip/benefit",
+        ]
+        let codes = qcm.fetchNotes(subsetOf: tags).map(\.uniqueCode)
+        #expect(codes == ["16", "22", "23", "24", "25", "21", "15", "3", "14", "2"])
+    }
+
+    @Test("沒有薪資時，整帳電子檔後面直接接付款條件")
+    func accountingReformNoteOrderWithoutPayroll() {
+        let codes = qcm.fetchNotes(subsetOf: [accounting, "ServiceItem/AccountingReform"]).map(\.uniqueCode)
+        #expect(codes == ["16", "22", "21", "14"])
     }
 }
