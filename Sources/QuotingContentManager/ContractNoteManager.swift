@@ -28,13 +28,26 @@
 /// 新備註處理（內文被改寫，或被當成不適用而清掉）。`retiredUniqueCodes` 列出刪除過的 code，
 /// 測試擋住它們再次出現。（16 在 2026-09-15 前是專案整帳的電子檔備註，1150828 改版重用成註一——
 /// 發生在正式上線前，只影響開發資料；之後不要再這樣做。）
+///
+/// ## 檔案編排
+///
+/// 現行備註在 `currentNotes`，**依報價單上的順序（weight 由高到低）排列**，打開就能對照母版；
+/// 停用的在 `ContractNoteManager+Deprecated.swift` 的 `deprecatedNotes`。陣列順序不影響任何行為——
+/// 查詢一律依 weight 排序（`QuotingContentManager.fetchNotes`）、依 uniqueCode 查（`getNote`），
+/// OC 同步也是依 weight 決定插入位置。
 public struct ContractNoteManager: Sendable {
     /// 從目錄刪除過的 uniqueCode，不可再拿來用（理由見型別說明）。
     ///
     /// 只列「刪除」的；deprecated 的仍留在 `notes` 裡，本來就佔著 code。
     public static let retiredUniqueCodes: Set<String> = []
 
-    public var notes: [ContractNoteInfo] = [
+    /// 全部定義：現行的＋停用的。OC 同步要靠停用的定義認出既有報價單上的舊備註，所以兩者都要在這裡。
+    public var notes: [ContractNoteInfo] = ContractNoteManager.currentNotes + ContractNoteManager.deprecatedNotes
+
+    public init() {}
+
+    /// 現行備註，依報價單上的順序（weight 由高到低）排列。
+    static let currentNotes: [ContractNoteInfo] = [
         // ── 註一：巨額變動與後續服務費用 ────────────────────────────────
         // 財簽／稅簽／記帳三家的報價基準（「…依預估…報價」）只住在**酬金補充說明**
         // （`PaymentItemManager`），不複製進合約注意事項。
@@ -53,11 +66,16 @@ public struct ContractNoteManager: Sendable {
         // （所以純工商登記的案子連這條都沒有）。
         //
         // 第二句（後續無簽證服務時另行收費）**只在有稅簽時印**（2026-10-13 裁定；原本 2026-09 裁定為不綁稅簽、一律印）。
+        //
+        // weight 2026-10-15 從 80 改 84：整帳（22）、薪資（23）、出納（24、25）四條要排在這條與註二（21，78）之間。
+        // 這條本來就排第一，往上調不改變任何既有的相對順序。
+        //
+        // 專營投資業不印這條，改印投資業版 26（見下一條）。
         .init(uniqueCode: "16", traits: [
-            "ServiceItem/FinancialComplianceAudit",
-            "ServiceItem/TaxComplianceAudit",
-            "ServiceItem/Accounting",
-        ], weight: 80, segments: [
+            .init(tags: ["ServiceItem/FinancialComplianceAudit"], excluded: [IndustrialType.investmentOnly.contractNoteTag]),
+            .init(tags: ["ServiceItem/TaxComplianceAudit"], excluded: [IndustrialType.investmentOnly.contractNoteTag]),
+            .init(tags: ["ServiceItem/Accounting"], excluded: [IndustrialType.investmentOnly.contractNoteTag]),
+        ], weight: 84, segments: [
             .init("資產總額", traits: ["ServiceItem/FinancialComplianceAudit"]),
             .init(
                 "營業收入總額",
@@ -73,7 +91,61 @@ public struct ContractNoteManager: Sendable {
             ),
         ]),
 
-        // ── 註二：付款條件 ────────────────────────────────────────────────
+        // ── 註一（專營投資業版）──────────────────────────────────────────
+        // 行業別是專營投資業時，註一整條換成這句（2026-10-16 業務裁定）：不印 16 的巨額變動，
+        // 有稅簽也不接 16 的第二句。出現條件與 16 相同（財簽／稅簽／記帳任一），只差行業別。
+        //
+        // 分流靠 OC 為每個案件多帶的行業別 tag（`IndustrialType.contractNoteTag`），做法同工商登記的行號版 17／18：
+        // 這條要求它、16 以 `excluded` 排除它；trait 保留 `ServiceItem/` tag，OC 同步才會在改行業別、
+        // 移除服務時把它清掉。集團內各公司依自己的行業別判斷，合併報價單可能兩條都印、
+        // 單一公司的報價單只印那家的版本（OC 以備註的來源案件篩選）。weight 與 16 相同。
+        .init(uniqueCode: "26", traits: [
+            .init(tags: ["ServiceItem/FinancialComplianceAudit", IndustrialType.investmentOnly.contractNoteTag]),
+            .init(tags: ["ServiceItem/TaxComplianceAudit", IndustrialType.investmentOnly.contractNoteTag]),
+            .init(tags: ["ServiceItem/Accounting", IndustrialType.investmentOnly.contractNoteTag]),
+        ], weight: 84, content: """
+        專營投資(控股)公司以持有3家未上市櫃公司為限報價，若有超過3家以上及買賣上市櫃公司股票或其他金融資產，將視進出筆數另與 貴公司討論報價金額。
+        """),
+
+        // ── 整帳、薪資、出納（註一之後、付款條件之前；2026-10-15 業務裁定）──────────
+        // 順序：註一（16）→ 整帳 22 → 薪資 23 → 出納 24、25 → 付款條件（21）。各自只在選到該服務時出現，
+        // 號碼依實際印出的條數往前遞補（例如沒有整帳時，薪資就是註二）。
+        //
+        // 編號從 22 起：1～20 是舊系統（QuotingContext）搬來的備註也在用的編號，同號不同義，
+        // 撤回成交解鎖後同步會把它們當成同一條（見 21 上方說明），所以新備註一律避開。
+
+        // 整帳：期初帳冊電子檔與開帳。只要有整帳（記帳卡下的整理費）就印，不論整帳卡有沒有勾「提供電子檔」；
+        // 專案整帳（整理費(專案)）不印。整帳一定掛在記帳卡下、註一必在，所以有整帳時就是註二。
+        // 整帳的酬金名稱會指回這條（`ServiceItem.accountingReform` 的 `paymentItemNameFormat.noteReference`）。
+        //
+        // 日期全部取自整帳區間：期間（`|plain`／`|short`）、期間最後一天、期間的下一個月（開帳月）。
+        // 取代 9 —— 9 是同一件事（提供電子檔）的舊寫法，且只在勾了提供電子檔時才出現。
+        .init(uniqueCode: "22", traits: ["ServiceItem/AccountingReform"], weight: 83, content: """
+        貴公司應提供\(TemplateVariableConcept.reformPeriod.placeholder(variant: "plain"))相關帳冊及報表(含科目餘額明細表)之電子檔(excel)，本事務所將依 貴公司提供之\(TemplateVariableConcept.reformEndDate.placeholder())報表金額作為\(TemplateVariableConcept.reformOpeningMonth.placeholder())開帳數，且免對於\(TemplateVariableConcept.reformPeriod.placeholder(variant: "short"))帳務做整理覆核，若後續因報表核實表達因素，導致需大量調整，將另與 貴公司討論報價金額。
+        """),
+
+        // 薪資：人數級距加價。1150917 母版拿掉的舊薪資備註是 11（已 deprecated，內容不同）。
+        .init(uniqueCode: "23", traits: ["ServiceItem/PayrollSupportOperation"], weight: 82, content: """
+        薪資人力支援作業基本以每月5人內計算，超過人數(第6位起)每位加價1,000元。
+        """),
+
+        // 出納：兩條都在選到出納時印。用字統一成「整理」（服務名稱是「出納事務整理作業」，1150917 從「處理」改來）。
+        // 25 的內容與 1150917 母版拿掉的 10（deprecated）幾乎相同，但不重新啟用 10，理由同上（舊系統的 10 是職業道德）。
+        .init(uniqueCode: "24", traits: ["ServiceItem/CashierOperation"], weight: 81, content: """
+        出納事務整理作業內容包含：
+        A.每月一次薪資轉帳。
+        B.每月一次廠商批次付款。
+        C.每週一次臨時付款。
+        """),
+        .init(uniqueCode: "25", traits: ["ServiceItem/CashierOperation"], weight: 80, content: """
+        出納事務整理作業內容包含：
+        A.國內轉帳30 筆；每加一筆多50 元。
+        B.國外轉帳10 筆；每加一筆多100 元。
+        C.一次薪資轉帳。
+        *如出納事務整理作業有重複處理，將額外收取處理費用2,000元/次。
+        """),
+
+        // ── 付款條件（1150828 母版的「註二」；前面有整帳／薪資／出納時號碼往後退）────────
         // 同樣是母版併成一條。簽證那句財簽與稅簽各有一份且字一樣，兩個都選時只印一次（去重）——
         // 寫成單一段落、trait 列兩個 tag（ANY-of）即可，不必在呼叫端做字串比對去重。
         //
@@ -95,39 +167,11 @@ public struct ContractNoteManager: Sendable {
                   separator: "。\n"),
         ], terminator: "。"),
 
-        // ── 已被註一／註二取代：4 財簽、6 稅簽、8 記帳 ──────────────────────────
-        // 1150828 母版改版前，「巨額變動＋付款條件」是三家各一條；改版後併成上面的 16（註一）與 21（註二）。
-        // 標 deprecated 而不是刪除：既有報價單同步時要清掉它們，否則會和 16/21 同一個主題印兩次。
-        // 內容照 main 上的原文保留，只供辨識，不會再被帶出。
-        .init(deprecated: true, uniqueCode: "4", traits: ["ServiceItem/FinancialComplianceAudit"], weight: 75, content: """
-        \(TemplateVariableConcept.financialComplianceAuditGroundName.placeholder())若有巨額變動，將另與 貴公司討論報價金額。
-        簽證公費請於當年度末日前支付半數，另外半數請於次年度五月末日前支付。
-        """),
-        .init(deprecated: true, uniqueCode: "6", traits: [
-            .init(tags: [
-                "ServiceItem/TaxComplianceAudit",
-            ]),
-        ], weight: 70, content: """
-        營業收入總額若有巨額變動，將另與 貴公司討論報價金額。
-        簽證公費請於當年度末日前支付半數，另外半數請於次年度五月末日前支付。
-        """),
-        .init(deprecated: true, uniqueCode: "8", traits: [
-            .init(tags: [
-                "ServiceItem/Accounting",
-            ]),
-        ], weight: 65, content: """
-        營業收入總額及憑證量若有巨額變動或變更申報方式，將另與 貴公司討論報價金額。
-        \(TemplateVariableConcept.accountingWorkName.placeholder())處理作業費用\(TemplateVariableConcept.accountingPeriod.placeholder())，並\(TemplateVariableConcept.accountingBilling.placeholder())，並應支付至本事務所指定之銀行帳戶。
-        承辦委任事項所發生之代墊費用，包括機票、簽證、住宿等，另行檢具相關憑證向 貴公司請款。
-        """),
-
-        // 前綴「附加服務選項：」**不帶序號**（1150917 母版定案）。曾經實作過依最終清單現算的序號
-        // （附加服務選項1／2），母版最終版拿掉了編號，整套機制隨之移除 —— 要撿回來見 commit 64cc61c。
-        .init(uniqueCode: "1", traits: ["ServiceItem/Ctp"], weight: 30, content: """
-        附加服務選項：代辦年度CTP申報(每年3月)，依據公司法第22條之1是為了配合洗錢防制政策，協助建置完善洗錢防制體制，強化洗錢防制作為，以增加法人(公司)之透明度，並有效掌握公司負責人(董事、監察及經理人)及主要股東(持有超過10%股份或出資額股東)之持股或出資額。
-        """),
-        .init(uniqueCode: "2", traits: ["general", "Tip/benefit"], weight: 0, content: """
-        最新稅務訊息通知，本事務所另將不定期以電子郵件寄送最新稅務法令之變更、稅捐獎勵減免等有關訊息供 貴公司參考，亦可免費參加本所舉辦之教育訓練課程(除特定專案外)，以使 貴公司與本事務所共同成長。
+        // ── 工商登記 ────────────────────────────────────────────────────
+        .init(uniqueCode: "15", traits: [
+            .init(tags: ["ServiceItem/CompanyRegistration"], excluded: [OrganizationType.soleProprietorshipOrPartnership.contractNoteTag]),
+        ], weight: 67, content: """
+        工商登記處理作業：\(TemplateVariableConcept.organizationTypeName.placeholder())、\(TemplateVariableConcept.capital.placeholder(variant: "exact"))、\(TemplateVariableConcept.companyRegistrationRegion.placeholder())、\(TemplateVariableConcept.companyRegistrationShareholder.placeholder())。
         """),
         // 3 / 15 是公司版（含其他非行號型態）；行號版為 18 / 17，以組織型態 tag 分流 —— 見 18 上方說明。
         .init(uniqueCode: "3", traits: [
@@ -136,54 +180,25 @@ public struct ContractNoteManager: Sendable {
         工商登記費用不包含政府規費、投審司（外國人）、動資查核、工廠及特許項目之登記及代墊之什項費用(依其收據請款)，服務公費及代墊費用請於辦理完成時支付。
         如股東超過5人，第6位起每位加收新台幣500元之防制洗錢查核費。
         """),
-        // 削價（職業道德）註：1150828 母版拿掉。它的 trait 是稅簽、財簽**任一**（兩個獨立 Trait），
-        // 母版 A、B 都有稅簽與財簽卻都沒有這條，所以是刻意拿掉、不是沒觸發。
-        // 標 deprecated：既有的未成交報價單也要拿掉（2026-10-05 裁定；原本是刪除、保留既有的）。
-        // 內容照 main 上的原文保留，只供辨識，不會再被帶出。
-        .init(deprecated: true, uniqueCode: "5", traits: [
-            "ServiceItem/TaxComplianceAudit",
-            "ServiceItem/FinancialComplianceAudit",
-        ], weight: 10, content: """
-        依據會計師職業道德，不以不正當之削價方式，延攬業務，故若查明有此事實，將比照前事務所收費辦理。
+        // 行號（獨資合夥）版工商登記備註：17 對應 15、18 對應 3。行號依商業登記法辦商業登記
+        // （不是向經濟部辦公司登記）—— 沒有動資查核、也沒有股東超過 5 人的防制洗錢查核費。
+        //
+        // 分流靠 OC 為每個案件多帶的組織型態 tag（`OrganizationType.contractNoteTag`）：行號版要求它、
+        // 公司版以 `excluded` 排除它。trait 刻意**保留** `ServiceItem/CompanyRegistration` ——
+        // OC `ContractNoteSynchronizer` 的 stale 清理只處理 trait 含 `ServiceItem/` 前綴的 uniqueCode，
+        // 少了它，改型態或移除工商登記卡後這兩筆會殘留在報價單上。
+        .init(uniqueCode: "17", traits: [
+            .init(tags: ["ServiceItem/CompanyRegistration", OrganizationType.soleProprietorshipOrPartnership.contractNoteTag]),
+        ], weight: 67, content: """
+        工商登記處理作業：\(TemplateVariableConcept.soleProprietorshipOrPartnershipName.placeholder())、\(TemplateVariableConcept.capital.placeholder(variant: "exact"))、\(TemplateVariableConcept.companyRegistrationRegion.placeholder())、\(TemplateVariableConcept.companyRegistrationShareholder.placeholder())。
         """),
-        .init(uniqueCode: "7", traits: [
-            "ServiceItem/AssistanceAnnualSupplementaryPremiumDeductionDetailsReporting",
-        ], weight: 25, content: """
-        附加服務選項：依全民健康保險扣取及繳納補充保費辦法第10條規定，扣繳義務人申報扣費明細時點，採年度申報應於每年1/31前將上一年度向保險對象扣取之補充保費金額，填報扣費明細彙報健保署。
+        .init(uniqueCode: "18", traits: [
+            .init(tags: ["ServiceItem/CompanyRegistration", OrganizationType.soleProprietorshipOrPartnership.contractNoteTag]),
+        ], weight: 66, content: """
+        工商登記費用不包含政府規費、投審司（外國人）、工廠及特許項目之登記及代墊之什項費用(依其收據請款)，服務公費及代墊費用請於辦理完成時支付。
         """),
-        // 本段文案曾有「專案整帳」版本（當時的 uniqueCode 16），已於 2026-09-15 移除——
-        // 專案整帳不再有「是否提供電子檔」config（OC 寫側擋掉），該 trait 組合永遠不成立。
-        // 16 之後被 1150828 改版重用成註一，見型別說明的「uniqueCode 不可重用」。
-        .init(uniqueCode: "9", mutex: .tags(["ServiceItemConfig/is_providing_electronic_file:false"]), traits: [
-            .init(tags: [
-                "ServiceItem/AccountingReform",
-                "ServiceItemConfig/is_providing_electronic_file:true",
-            ]),
-        ], weight: 50, content: """
-        須提供 \(TemplateVariableConcept.reformPeriod.placeholder()) 相關會計帳務報表及帳冊（含日記帳、實帳戶科目餘額明細）Excel 電子檔，若未能提供將另與 貴公司討論報價金額。
-        """),
-        // 1150917 母版拿掉了出納這條備註。標 deprecated：不再被帶出，既有報價單同步時清掉；內容保留。
-        .init(deprecated: true, uniqueCode: "10", traits: [
-            .init(tags: [
-                "ServiceItem/CashierOperation",
-            ]),
-        ], weight: 40, content: """
-        出納事務整理作業內容包含：
-        A.國內轉帳30 筆；每加⼀筆多50 元。
-        B.國外轉帳10 筆；每加⼀筆多100 元。
-        C.⼀次薪資轉帳。
-        *如出納事務整理作業有重複處理，將額外收取處理費用2,000元/次。
-        公費費用\(TemplateVariableConcept.cashierPeriod.placeholder())，並\(TemplateVariableConcept.cashierBilling.placeholder())
-        """),
-        // 1150917 母版拿掉了薪資這條備註。標 deprecated：不再被帶出，既有報價單同步時清掉；內容保留。
-        .init(deprecated: true, uniqueCode: "11", traits: [
-            .init(tags: [
-                "ServiceItem/PayrollSupportOperation",
-            ]),
-        ], weight: 35, content: """
-        薪資人力支援處理作業500元/人/月；基本收費3,000/月。
-        公費費用\(TemplateVariableConcept.payrollSupportPeriod.placeholder())，並\(TemplateVariableConcept.payrollSupportBilling.placeholder())
-        """),
+
+        // ── 稅簽說明（12／13 互斥：有沒有同時選財簽）──────────────────────────
         .init(uniqueCode: "12", mutex: .codes(["13"]), traits: [
             .init(tags: [
                 "ServiceItem/TaxComplianceAudit",
@@ -209,33 +224,27 @@ public struct ContractNoteManager: Sendable {
         2.享有盈虧互抵之優惠。
         3.降低國稅局電腦選案比率，倘若有查帳情況將由本事務所會計師親至國稅局處理之。
         """),
+
+        // ── 附加服務 ────────────────────────────────────────────────────
+        // 前綴「附加服務選項：」**不帶序號**（1150917 母版定案）。曾經實作過依最終清單現算的序號
+        // （附加服務選項1／2），母版最終版拿掉了編號，整套機制隨之移除 —— 要撿回來見 commit 64cc61c。
+        .init(uniqueCode: "1", traits: ["ServiceItem/Ctp"], weight: 30, content: """
+        附加服務選項：代辦年度CTP申報(每年3月)，依據公司法第22條之1是為了配合洗錢防制政策，協助建置完善洗錢防制體制，強化洗錢防制作為，以增加法人(公司)之透明度，並有效掌握公司負責人(董事、監察及經理人)及主要股東(持有超過10%股份或出資額股東)之持股或出資額。
+        """),
+        .init(uniqueCode: "7", traits: [
+            "ServiceItem/AssistanceAnnualSupplementaryPremiumDeductionDetailsReporting",
+        ], weight: 25, content: """
+        附加服務選項：依全民健康保險扣取及繳納補充保費辦法第10條規定，扣繳義務人申報扣費明細時點，採年度申報應於每年1/31前將上一年度向保險對象扣取之補充保費金額，填報扣費明細彙報健保署。
+        """),
+
+        // ── 記帳：非稅簽申報的查核 ──────────────────────────────────────────
         .init(uniqueCode: "14", traits: ["ServiceItem/Accounting"], weight: 5, content: """
         採非稅務簽證申報之案件當年度若需協助國稅局營所稅查核，將另與 貴公司討論服務費報價金額。
         """),
-        .init(uniqueCode: "15", traits: [
-            .init(tags: ["ServiceItem/CompanyRegistration"], excluded: [OrganizationType.soleProprietorshipOrPartnership.contractNoteTag]),
-        ], weight: 67, content: """
-        工商登記處理作業：\(TemplateVariableConcept.organizationTypeName.placeholder())、\(TemplateVariableConcept.capital.placeholder(variant: "exact"))、\(TemplateVariableConcept.companyRegistrationRegion.placeholder())、\(TemplateVariableConcept.companyRegistrationShareholder.placeholder())。
-        """),
-        // 行號（獨資合夥）版工商登記備註：17 對應 15、18 對應 3。行號依商業登記法辦商業登記
-        // （不是向經濟部辦公司登記）—— 沒有動資查核、也沒有股東超過 5 人的防制洗錢查核費。
-        //
-        // 分流靠 OC 為每個案件多帶的組織型態 tag（`OrganizationType.contractNoteTag`）：行號版要求它、
-        // 公司版以 `excluded` 排除它。trait 刻意**保留** `ServiceItem/CompanyRegistration` ——
-        // OC `ContractNoteSynchronizer` 的 stale 清理只處理 trait 含 `ServiceItem/` 前綴的 uniqueCode，
-        // 少了它，改型態或移除工商登記卡後這兩筆會殘留在報價單上。
-        .init(uniqueCode: "17", traits: [
-            .init(tags: ["ServiceItem/CompanyRegistration", OrganizationType.soleProprietorshipOrPartnership.contractNoteTag]),
-        ], weight: 67, content: """
-        工商登記處理作業：\(TemplateVariableConcept.soleProprietorshipOrPartnershipName.placeholder())、\(TemplateVariableConcept.capital.placeholder(variant: "exact"))、\(TemplateVariableConcept.companyRegistrationRegion.placeholder())、\(TemplateVariableConcept.companyRegistrationShareholder.placeholder())。
-        """),
-        .init(uniqueCode: "18", traits: [
-            .init(tags: ["ServiceItem/CompanyRegistration", OrganizationType.soleProprietorshipOrPartnership.contractNoteTag]),
-        ], weight: 66, content: """
-        工商登記費用不包含政府規費、投審司（外國人）、工廠及特許項目之登記及代墊之什項費用(依其收據請款)，服務公費及代墊費用請於辦理完成時支付。
+
+        // ── 一般（不由服務項目帶出，`WhenQuotationCreated` 加）─────────────────────
+        .init(uniqueCode: "2", traits: ["general", "Tip/benefit"], weight: 0, content: """
+        最新稅務訊息通知，本事務所另將不定期以電子郵件寄送最新稅務法令之變更、稅捐獎勵減免等有關訊息供 貴公司參考，亦可免費參加本所舉辦之教育訓練課程(除特定專案外)，以使 貴公司與本事務所共同成長。
         """),
     ]
-
-    public init() {}
-
 }
