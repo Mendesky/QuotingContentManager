@@ -69,10 +69,12 @@ public struct ContractNoteManager: Sendable {
         //
         // weight 2026-10-15 從 80 改 84：整帳（22）、薪資（23）、出納（24、25）四條要排在這條與註二（21，78）之間。
         // 這條本來就排第一，往上調不改變任何既有的相對順序。
+        //
+        // 專營投資業不印這條，改印投資業版 26（見下一條）。
         .init(uniqueCode: "16", traits: [
-            "ServiceItem/FinancialComplianceAudit",
-            "ServiceItem/TaxComplianceAudit",
-            "ServiceItem/Accounting",
+            .init(tags: ["ServiceItem/FinancialComplianceAudit"], excluded: [IndustrialType.investmentOnly.contractNoteTag]),
+            .init(tags: ["ServiceItem/TaxComplianceAudit"], excluded: [IndustrialType.investmentOnly.contractNoteTag]),
+            .init(tags: ["ServiceItem/Accounting"], excluded: [IndustrialType.investmentOnly.contractNoteTag]),
         ], weight: 84, segments: [
             .init("資產總額", traits: ["ServiceItem/FinancialComplianceAudit"]),
             .init(
@@ -88,6 +90,22 @@ public struct ContractNoteManager: Sendable {
                 traits: ["ServiceItem/TaxComplianceAudit"]
             ),
         ]),
+
+        // ── 註一（專營投資業版）──────────────────────────────────────────
+        // 行業別是專營投資業時，註一整條換成這句（2026-10-16 業務裁定）：不印 16 的巨額變動，
+        // 有稅簽也不接 16 的第二句。出現條件與 16 相同（財簽／稅簽／記帳任一），只差行業別。
+        //
+        // 分流靠 OC 為每個案件多帶的行業別 tag（`IndustrialType.contractNoteTag`），做法同工商登記的行號版 17／18：
+        // 這條要求它、16 以 `excluded` 排除它；trait 保留 `ServiceItem/` tag，OC 同步才會在改行業別、
+        // 移除服務時把它清掉。集團內各公司依自己的行業別判斷，合併報價單可能兩條都印、
+        // 單一公司的報價單只印那家的版本（OC 以備註的來源案件篩選）。weight 與 16 相同。
+        .init(uniqueCode: "26", traits: [
+            .init(tags: ["ServiceItem/FinancialComplianceAudit", IndustrialType.investmentOnly.contractNoteTag]),
+            .init(tags: ["ServiceItem/TaxComplianceAudit", IndustrialType.investmentOnly.contractNoteTag]),
+            .init(tags: ["ServiceItem/Accounting", IndustrialType.investmentOnly.contractNoteTag]),
+        ], weight: 84, content: """
+        專營投資(控股)公司以持有3家未上市櫃公司為限報價，若有超過3家以上及買賣上市櫃公司股票或其他金融資產，將視進出筆數另與 貴公司討論報價金額。
+        """),
 
         // ── 整帳、薪資、出納（註一之後、付款條件之前；2026-10-15 業務裁定）──────────
         // 順序：註一（16）→ 整帳 22 → 薪資 23 → 出納 24、25 → 付款條件（21）。各自只在選到該服務時出現，

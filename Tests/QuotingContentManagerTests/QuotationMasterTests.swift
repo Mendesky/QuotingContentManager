@@ -705,6 +705,50 @@ struct CompositeContractNoteTests {
         #expect(try #require(qcm.fetchPaymentItems(serviceItem: "Accounting").first).content.contains("作業依照預估年營收計"))
     }
 
+    // MARK: 註一（專營投資業版）
+
+    private let investmentOnly = IndustrialType.investmentOnly.contractNoteTag
+
+    @Test("行業別 tag 的字串")
+    func industrialTypeTag() {
+        #expect(investmentOnly == "IndustrialType/investmentOnly")
+        #expect(IndustrialType.allCases.allSatisfy { $0.contractNoteTag.hasPrefix(IndustrialType.contractNoteTagPrefix) })
+    }
+
+    @Test("專營投資業 — 註一換成投資業版，不印 16",
+          arguments: [
+            ["ServiceItem/FinancialComplianceAudit"],
+            ["ServiceItem/TaxComplianceAudit"],
+            ["ServiceItem/Accounting"],
+            ["ServiceItem/FinancialComplianceAudit", "ServiceItem/TaxComplianceAudit", "ServiceItem/Accounting"],
+          ])
+    func investmentOnlyReplacesNoteOne(tags: [String]) {
+        let codes = qcm.fetchNotes(subsetOf: tags + [investmentOnly]).map(\.uniqueCode)
+        #expect(codes.first == "26")
+        #expect(!codes.contains("16"))
+    }
+
+    @Test("其他行業別或還沒填行業別 — 照舊印 16、沒有投資業版",
+          arguments: [nil] + IndustrialType.allCases.filter { $0 != .investmentOnly }.map(\.contractNoteTag))
+    func otherIndustriesKeepNoteOne(industryTag: String?) {
+        let tags = [financialAudit, taxAudit, accounting] + (industryTag.map { [$0] } ?? [])
+        let codes = qcm.fetchNotes(subsetOf: tags).map(\.uniqueCode)
+        #expect(codes.first == "16")
+        #expect(!codes.contains("26"))
+    }
+
+    /// 整條只印業務給的那一句：有稅簽也不接 16 的第二句（2026-10-16 業務裁定）。
+    @Test("專營投資業 — 註一內容，有稅簽也只有這一句")
+    func investmentOnlyNoteOneContent() throws {
+        #expect(try composed("26", [financialAudit, taxAudit, accounting, investmentOnly]) == "專營投資(控股)公司以持有3家未上市櫃公司為限報價，若有超過3家以上及買賣上市櫃公司股票或其他金融資產，將視進出筆數另與 貴公司討論報價金額。")
+    }
+
+    @Test("專營投資業但只有工商登記 — 兩版註一都不出現")
+    func investmentOnlyCompanyRegistrationHasNoNoteOne() throws {
+        #expect(try composed("16", [companyRegistration, investmentOnly]) == nil)
+        #expect(try composed("26", [companyRegistration, investmentOnly]) == nil)
+    }
+
     // MARK: 註二
 
     @Test("註二 — 財簽＋稅簽＋記帳：簽證那句去重成一次")
@@ -774,5 +818,15 @@ struct CompositeContractNoteTests {
     func accountingReformNoteOrderWithoutPayroll() {
         let codes = qcm.fetchNotes(subsetOf: [accounting, "ServiceItem/AccountingReform"]).map(\.uniqueCode)
         #expect(codes == ["16", "22", "21", "14"])
+    }
+
+    @Test("專營投資業：投資業版註一排在原本 16 的位置")
+    func investmentOnlyNoteOrder() {
+        let tags = [
+            accounting, "ServiceItem/AccountingReform", "ServiceItem/PayrollSupportOperation",
+            IndustrialType.investmentOnly.contractNoteTag,
+        ]
+        let codes = qcm.fetchNotes(subsetOf: tags).map(\.uniqueCode)
+        #expect(codes == ["26", "22", "23", "21", "14"])
     }
 }
