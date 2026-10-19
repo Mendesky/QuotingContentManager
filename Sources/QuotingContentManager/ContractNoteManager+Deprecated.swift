@@ -53,9 +53,8 @@ extension ContractNoteManager {
         // 專案整帳不再有「是否提供電子檔」config（OC 寫側擋掉），該 trait 組合永遠不成立。
         // 16 之後被 1150828 改版重用成註一，見型別說明的「uniqueCode 不可重用」。
         //
-        // 已被 22 取代（2026-10-15）。標 deprecated 不改變任何現行行為 —— OC 同步從不帶
-        // `ServiceItemConfig/` 的 tag，這條本來就帶不出來，同步時也一直被當成不適用而清掉；
-        // 標起來是為了日後有人接上那個 tag 時，不會和 22 同時印出兩條電子檔備註。
+        // 2026-10-15 標 deprecated（當時由 22 取代；22 也在 2026-10-19 取消，見下一條）。不改變任何現行行為 ——
+        // OC 同步從不帶 `ServiceItemConfig/` 的 tag，這條本來就帶不出來，同步時也一直被當成不適用而清掉。
         .init(deprecated: true, uniqueCode: "9", mutex: .tags(["ServiceItemConfig/is_providing_electronic_file:false"]), traits: [
             .init(tags: [
                 "ServiceItem/AccountingReform",
@@ -63,6 +62,17 @@ extension ContractNoteManager {
             ]),
         ], weight: 50, content: """
         須提供 \(TemplateVariableConcept.reformPeriod.placeholder()) 相關會計帳務報表及帳冊（含日記帳、實帳戶科目餘額明細）Excel 電子檔，若未能提供將另與 貴公司討論報價金額。
+        """),
+
+        // 整帳電子檔：2026-10-15 為 1151015 文案新增（有整帳就印、整理費酬金名稱接「；註二」），
+        // 2026-10-19 業務取消，連同它專用的日期範本變數（ReformEndDate、ReformOpeningMonth、ReformPeriod 的
+        // |plain／|short）與酬金名稱接註號一併拿掉。標 deprecated 而非刪除：QCM main 曾帶著它，若有 OC 以那個版本
+        // 同步過報價單，下次同步會把它清掉。
+        //
+        // 內文**不是**原文：原文引用的範本變數已撤除，留著會讓「文案只用已登記變數」的測試失敗；
+        // 這裡只留可辨識的敘述（停用的備註不會被帶出、不會印出）。
+        .init(deprecated: true, uniqueCode: "22", traits: ["ServiceItem/AccountingReform"], weight: 83, content: """
+        貴公司應提供整帳期間相關帳冊及報表(含科目餘額明細表)之電子檔(excel)，本事務所將依 貴公司提供之整帳期末報表金額作為開帳數。（2026-10-19 取消）
         """),
 
         // 1150917 母版拿掉了出納這條備註。標 deprecated：不再被帶出，既有報價單同步時清掉；內容保留。

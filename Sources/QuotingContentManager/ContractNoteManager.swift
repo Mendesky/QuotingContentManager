@@ -67,7 +67,7 @@ public struct ContractNoteManager: Sendable {
         //
         // 第二句（後續無簽證服務時另行收費）**只在有稅簽時印**（2026-10-13 裁定；原本 2026-09 裁定為不綁稅簽、一律印）。
         //
-        // weight 2026-10-15 從 80 改 84：整帳（22）、薪資（23）、出納（24、25）四條要排在這條與註二（21，78）之間。
+        // weight 2026-10-15 從 80 改 84：薪資（23）、出納（24、25）要排在這條與註二（21，78）之間（當時還有整帳 22，2026-10-19 取消）。
         // 這條本來就排第一，往上調不改變任何既有的相對順序。
         //
         // 專營投資業不印這條，改印投資業版 26（見下一條）。
@@ -107,22 +107,13 @@ public struct ContractNoteManager: Sendable {
         專營投資(控股)公司以持有3家未上市櫃公司為限報價，若有超過3家以上及買賣上市櫃公司股票或其他金融資產，將視進出筆數另與 貴公司討論報價金額。
         """),
 
-        // ── 整帳、薪資、出納（註一之後、付款條件之前；2026-10-15 業務裁定）──────────
-        // 順序：註一（16）→ 整帳 22 → 薪資 23 → 出納 24、25 → 付款條件（21）。各自只在選到該服務時出現，
-        // 號碼依實際印出的條數往前遞補（例如沒有整帳時，薪資就是註二）。
+        // ── 薪資、出納（註一之後、付款條件之前；2026-10-15 業務裁定）────────────
+        // 順序：註一（16／26）→ 薪資 23 → 出納 24、25 → 付款條件（21）。各自只在選到該服務時出現，
+        // 號碼依實際印出的條數往前遞補（例如沒有薪資時，出納就是註二）。
         //
         // 編號從 22 起：1～20 是舊系統（QuotingContext）搬來的備註也在用的編號，同號不同義，
         // 撤回成交解鎖後同步會把它們當成同一條（見 21 上方說明），所以新備註一律避開。
-
-        // 整帳：期初帳冊電子檔與開帳。只要有整帳（記帳卡下的整理費）就印，不論整帳卡有沒有勾「提供電子檔」；
-        // 專案整帳（整理費(專案)）不印。整帳一定掛在記帳卡下、註一必在，所以有整帳時就是註二。
-        // 整帳的酬金名稱會指回這條（`ServiceItem.accountingReform` 的 `paymentItemNameFormat.noteReference`）。
-        //
-        // 日期全部取自整帳區間：期間（`|plain`／`|short`）、期間最後一天、期間的下一個月（開帳月）。
-        // 取代 9 —— 9 是同一件事（提供電子檔）的舊寫法，且只在勾了提供電子檔時才出現。
-        .init(uniqueCode: "22", traits: ["ServiceItem/AccountingReform"], weight: 83, content: """
-        貴公司應提供\(TemplateVariableConcept.reformPeriod.placeholder(variant: "plain"))相關帳冊及報表(含科目餘額明細表)之電子檔(excel)，本事務所將依 貴公司提供之\(TemplateVariableConcept.reformEndDate.placeholder())報表金額作為\(TemplateVariableConcept.reformOpeningMonth.placeholder())開帳數，且免對於\(TemplateVariableConcept.reformPeriod.placeholder(variant: "short"))帳務做整理覆核，若後續因報表核實表達因素，導致需大量調整，將另與 貴公司討論報價金額。
-        """),
+        // 22（整帳電子檔）2026-10-19 業務取消，停用在 `ContractNoteManager+Deprecated.swift`。
 
         // 薪資：人數級距加價。1150917 母版拿掉的舊薪資備註是 11（已 deprecated，內容不同）。
         .init(uniqueCode: "23", traits: ["ServiceItem/PayrollSupportOperation"], weight: 82, content: """

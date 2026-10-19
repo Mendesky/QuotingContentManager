@@ -30,8 +30,7 @@ public enum ContentPlaceholder: String, CaseIterable, Sendable {
     case count = "{count}"
     /// 指向合約注意事項的引用整段；算不出註號時換成空字串。由 `ContractNoteReference.substitute` 替換。
     case noteRef = "{noteRef}"
-    /// 引用裡的註號（中文數字）。由 `ContractNoteReference.render(noteNumber:)`、
-    /// `PaymentItemNameFormat.NoteReference.attach(to:noteNumber:)` 替換。
+    /// 引用裡的註號（中文數字）。由 `ContractNoteReference.render(noteNumber:)` 替換。
     case noteNo = "{noteNo}"
 
     /// 可以出現這個 token 的欄位種類。其餘欄位一律不得出現任何 `{…}`。
@@ -52,7 +51,7 @@ public enum ContentPlaceholder: String, CaseIterable, Sendable {
         case additionalServiceNameTemplate
         /// `WorkItem.content` / `taxAccountContent`
         case workItemContent
-        /// `ContractNoteReference.template`、`PaymentItemNameFormat.NoteReference` 的兩個 template
+        /// `ContractNoteReference.template`
         case noteReferenceTemplate
     }
 }

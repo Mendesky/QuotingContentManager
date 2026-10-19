@@ -35,8 +35,6 @@ enum QCMTextCatalog {
             }
             add("\(at).paymentItemNameFormat", item.paymentItemNameFormat?.template, .paymentItemNameTemplate)
             add("\(at).paymentItemNameFormat.taxAccountTemplate", item.paymentItemNameFormat?.taxAccountTemplate, .paymentItemNameTemplate)
-            add("\(at).paymentItemNameFormat.noteReference.insideParentheses", item.paymentItemNameFormat?.noteReference?.insideParenthesesTemplate, .noteReferenceTemplate)
-            add("\(at).paymentItemNameFormat.noteReference.standalone", item.paymentItemNameFormat?.noteReference?.standaloneTemplate, .noteReferenceTemplate)
             if case let .embedsPrice(format) = item.additionalServiceNameStrategy {
                 add("\(at).additionalServiceNameFormat", format.template, .additionalServiceNameTemplate)
                 add("\(at).additionalServiceNameFormat.noteReference", format.noteReference?.template, .noteReferenceTemplate)
