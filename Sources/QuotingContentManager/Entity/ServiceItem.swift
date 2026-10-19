@@ -176,14 +176,8 @@ public struct ServiceItem: Codable, Sendable {
                 ],
                 // 1150917 母版兩個帳別的酬金列都寫「整理費(期間)」，不是服務項目名稱，
                 // 所以這裡不帶 `{name}`。`name` / `taxAccountName` 仍供其它呈現用（整帳不進服務範圍）。
-                // 註號指回整帳電子檔備註 22：整理費(115年1-4月；註二)（2026-10-15 業務裁定）。
                 paymentItemNameFormat: PaymentItemNameFormat(
-                    template: "整理費\(TemplateVariableConcept.reformPeriod.placeholder())",
-                    noteReference: .init(
-                        contractNoteUniqueCode: "22",
-                        insideParenthesesTemplate: "；註{noteNo}",
-                        standaloneTemplate: "(註{noteNo})"
-                    )
+                    template: "整理費\(TemplateVariableConcept.reformPeriod.placeholder())"
                 ))
         }
     }

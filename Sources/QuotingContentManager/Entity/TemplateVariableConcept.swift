@@ -39,14 +39,7 @@ public enum TemplateVariableConcept: String, CaseIterable, Sendable, Codable {
 
     // bundle 級
     case accountingStart = "AccountingStart"
-    /// 整帳區間。預設值帶括號 `(115年1-4月)`（酬金名稱「整理費(期間)」用）；
-    /// 變體 `|plain` 不帶括號 `115年1-4月`、`|short` 同年時省略年份 `1-4月`（跨年與 `|plain` 相同），
-    /// 供整帳電子檔備註（uniqueCode 22）引用；`|project` 是專案整帳那張卡的區間。
     case reformPeriod = "ReformPeriod"
-    /// 整帳區間的最後一天，民國年／月／日（`115/4/30`）。供整帳電子檔備註（uniqueCode 22）引用。
-    case reformEndDate = "ReformEndDate"
-    /// 整帳區間的下一個月（`115年5月`）—— 依整帳期末報表金額開帳的月份。供整帳電子檔備註（uniqueCode 22）引用。
-    case reformOpeningMonth = "ReformOpeningMonth"
     case financialComplianceAuditStartYear = "FinancialComplianceAuditStartYear"
     case taxComplianceAuditStartYear = "TaxComplianceAuditStartYear"
     case companyRegistrationRegion = "CompanyRegistrationRegion"
@@ -82,7 +75,7 @@ public enum TemplateVariableConcept: String, CaseIterable, Sendable, Codable {
              .defaultFinancialComplianceAuditPaymentItemSupplementaryNote,
              .defaultTaxComplianceAuditPaymentItemSupplementaryNote:
             return .caseLevel
-        case .accountingStart, .reformPeriod, .reformEndDate, .reformOpeningMonth,
+        case .accountingStart, .reformPeriod,
              .financialComplianceAuditStartYear, .taxComplianceAuditStartYear,
              .companyRegistrationRegion, .companyRegistrationShareholder,
              .soleProprietorshipOrPartnershipName,

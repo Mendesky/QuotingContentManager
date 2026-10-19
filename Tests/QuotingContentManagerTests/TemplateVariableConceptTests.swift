@@ -73,13 +73,4 @@ struct TemplateVariableConceptTests {
         #expect(TemplateVariableConcept.capital.placeholder() == "%Capital%")
         #expect(TemplateVariableConcept.capital.placeholder(variant: "exact") == "%Capital|exact%")
     }
-
-    /// 整帳電子檔備註（uniqueCode 22）的兩個日期：與 `ReformPeriod` 同樣取自整帳卡，bundle 級。
-    @Test("reformEndDate / reformOpeningMonth 已登記且為 bundle 級")
-    func reformDatesAreBundleConcepts() {
-        #expect(TemplateVariableConcept.reformEndDate.placeholder() == "%ReformEndDate%")
-        #expect(TemplateVariableConcept.reformOpeningMonth.placeholder() == "%ReformOpeningMonth%")
-        #expect(TemplateVariableConcept.reformEndDate.scope == .bundle)
-        #expect(TemplateVariableConcept.reformOpeningMonth.scope == .bundle)
-    }
 }
