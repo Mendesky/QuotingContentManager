@@ -51,6 +51,14 @@ struct TemplateVariableConceptTests {
         #expect(TemplateVariableConcept.provisionalIncomeTaxAuditStartYear.placeholder() == "%ProvisionalIncomeTaxAuditStartYear%")
     }
 
+    /// 記帳結束服務時間 concept：bundle 級，與 accountingStart 成對（值由 OpportunityContext 依記帳卡 endDate 算出）。
+    @Test("accountingEnd 已登記且為 bundle 級")
+    func accountingEndIsRegisteredBundleConcept() {
+        #expect(TemplateVariableConcept.accountingEnd.rawValue == "AccountingEnd")
+        #expect(TemplateVariableConcept.accountingEnd.scope == .bundle)
+        #expect(TemplateVariableConcept.accountingEnd.placeholder() == "%AccountingEnd%")
+    }
+
     /// 組織型態名稱 concept：case 級。
     @Test("organizationTypeName 是 case 級變數")
     func organizationTypeNameIsCaseLevel() {

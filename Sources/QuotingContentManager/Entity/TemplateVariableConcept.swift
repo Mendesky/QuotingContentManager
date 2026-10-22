@@ -39,6 +39,7 @@ public enum TemplateVariableConcept: String, CaseIterable, Sendable, Codable {
 
     // bundle 級
     case accountingStart = "AccountingStart"
+    case accountingEnd = "AccountingEnd"
     case reformPeriod = "ReformPeriod"
     case financialComplianceAuditStartYear = "FinancialComplianceAuditStartYear"
     case taxComplianceAuditStartYear = "TaxComplianceAuditStartYear"
@@ -75,7 +76,7 @@ public enum TemplateVariableConcept: String, CaseIterable, Sendable, Codable {
              .defaultFinancialComplianceAuditPaymentItemSupplementaryNote,
              .defaultTaxComplianceAuditPaymentItemSupplementaryNote:
             return .caseLevel
-        case .accountingStart, .reformPeriod,
+        case .accountingStart, .accountingEnd, .reformPeriod,
              .financialComplianceAuditStartYear, .taxComplianceAuditStartYear,
              .companyRegistrationRegion, .companyRegistrationShareholder,
              .soleProprietorshipOrPartnershipName,
