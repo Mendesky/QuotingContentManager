@@ -330,6 +330,39 @@ public struct ServiceItem: Codable, Sendable {
         }
     }
 
+    /// 產業創新條例第 23 條之 3 申報：客戶做實質投資（多為購置機器設備）時，把投資金額自未分配盈餘
+    /// 減除的申報作業（上游 `QuotingAggregate.ServiceItemType.industrialInnovationUndistributedEarningsFiling`）。
+    ///
+    /// 文案依 Notion PBI「新增 產業創新條例 23-3 服務項目」中已與台中所客服確認的截圖：
+    /// - `name` 會進服務範圍前言的 `%ServiceItemNames%`（「…辦理有關產業創新條例第23條之3規定相關申報作業之專業服務」），
+    ///   所以用全名；卡片標題用 `alias`。
+    /// - 服務範圍是「粗體標題＋一段說明」，即 `scopeTerms` 逐節印（上游分類為 `.termPerSection`，與稅簽同形）。
+    /// - 酬金列：「產業創新條例第23條之3規定相關申報作業-115年未分配盈餘申報」，年度由範本變數帶入。
+    public static var industrialInnovationUndistributedEarningsFiling: Self {
+        get {
+            .init(
+                type: "IndustrialInnovationUndistributedEarningsFiling",
+                name: "產業創新條例第23條之3規定相關申報作業",
+                alias: "產業創新條例23-3申報",
+                primary: true,
+                tags: [
+                    "ServiceItem/IndustrialInnovationUndistributedEarningsFiling",
+                ],
+                workItems: [
+                    .init(type: "industrialInnovationUndistributedEarningsFiling", content: "產業創新條例23-3申報"),
+                ],
+                scopeTerms: [
+                    .init(
+                        name: "產業創新條例第23條之3規定相關申報作業",
+                        content: "公司或有限合夥事業適用產業創新條例第23條之3規定，填具「未分配盈餘實質投資明細表」及「產業創新條例申報減免稅額通報表」申報作業。"
+                    ),
+                ],
+                paymentItemNameFormat: PaymentItemNameFormat(
+                    template: "{name}-\(TemplateVariableConcept.industrialInnovationUndistributedEarningsYear.placeholder())未分配盈餘申報"
+                ))
+        }
+    }
+
     public static var cashierOperation: Self {
         get {
             .init(
