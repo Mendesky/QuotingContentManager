@@ -56,6 +56,9 @@ public enum TemplateVariableConcept: String, CaseIterable, Sendable, Codable {
     case payrollSupportPeriod = "PayrollSupportPeriod"
     case payrollSupportBilling = "PayrollSupportBilling"
     case provisionalIncomeTaxAuditStartYear = "ProvisionalIncomeTaxAuditStartYear"
+    /// 產業創新條例 23-3 申報卡的「未分配盈餘年度」，民國年含「年」字（例：「115年」）。
+    /// 值由 OC 依該 bundle 的產創 23-3 卡上使用者選的年度供給（不是服務起始日推得的）。
+    case industrialInnovationUndistributedEarningsYear = "IndustrialInnovationUndistributedEarningsYear"
 
     /// 值在哪個層級變動（內容語意）。
     public enum Scope: String, Sendable, Codable {
@@ -84,7 +87,8 @@ public enum TemplateVariableConcept: String, CaseIterable, Sendable, Codable {
              .accountingPeriod, .accountingBilling,
              .cashierPeriod, .cashierBilling,
              .payrollSupportPeriod, .payrollSupportBilling,
-             .provisionalIncomeTaxAuditStartYear:
+             .provisionalIncomeTaxAuditStartYear,
+             .industrialInnovationUndistributedEarningsYear:
             return .bundle
         }
     }

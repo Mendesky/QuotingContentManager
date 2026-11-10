@@ -28,6 +28,7 @@ struct AdditionalServiceNameStrategyTests {
         .financialComplianceAudit,
         .taxComplianceAudit,
         .provisionalIncomeTaxAudit,
+        .industrialInnovationUndistributedEarningsFiling,
         .cashierOperation,
         .payrollSupportOperation,
         .customized,

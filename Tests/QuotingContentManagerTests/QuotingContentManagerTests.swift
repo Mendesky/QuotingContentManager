@@ -40,6 +40,22 @@ import Testing
     #expect(item.paymentItemNameFormat?.taxAccountTemplate?.contains("ProfitseekingEnterpriseIncomeTaxFiling") == false)
 }
 
+// 產業創新條例 23-3 申報：文案依 Notion PBI 已確認截圖。name 用全名（進服務範圍前言的 %ServiceItemNames%），
+// 服務範圍為單一 scopeTerm（標題＋說明），酬金名稱的年度由 OC 依卡上「未分配盈餘年度」供給。
+@Test func `industrialInnovationUndistributedEarningsFiling is registered and matches confirmed copy`() async throws {
+    let item = try #require(QuotingContentManager.standard.getServiceItem(type: "IndustrialInnovationUndistributedEarningsFiling"))
+    #expect(item.name == "產業創新條例第23條之3規定相關申報作業")
+    #expect(item.alias == "產業創新條例23-3申報")
+    #expect(item.primary == true)
+    #expect(item.tags == ["ServiceItem/IndustrialInnovationUndistributedEarningsFiling"])
+    #expect(item.workItems.map(\.type) == ["industrialInnovationUndistributedEarningsFiling"])
+    #expect(item.workItems.first?.content == "產業創新條例23-3申報")
+    let terms = item.effectiveScopeTerms(for: nil)
+    #expect(terms.map(\.name) == ["產業創新條例第23條之3規定相關申報作業"])
+    #expect(terms.first?.content == "公司或有限合夥事業適用產業創新條例第23條之3規定，填具「未分配盈餘實質投資明細表」及「產業創新條例申報減免稅額通報表」申報作業。")
+    #expect(item.paymentItemName(for: nil) == "產業創新條例第23條之3規定相關申報作業-%IndustrialInnovationUndistributedEarningsYear%未分配盈餘申報")
+}
+
 // 暫繳簽證：單一 workItem（複用記帳暫繳的 type 與文案）、無 term/scopeTerms（服務範圍呈現名稱＋條列）、
 // 酬金模板 `%ProvisionalIncomeTaxAuditStartYear%之{name}`（值含「年度」由 OC contributor 供給）。
 @Test func `provisionalIncomeTaxAudit is registered and matches contract`() async throws {

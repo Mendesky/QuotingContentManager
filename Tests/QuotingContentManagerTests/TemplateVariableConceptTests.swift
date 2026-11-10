@@ -51,6 +51,14 @@ struct TemplateVariableConceptTests {
         #expect(TemplateVariableConcept.provisionalIncomeTaxAuditStartYear.placeholder() == "%ProvisionalIncomeTaxAuditStartYear%")
     }
 
+    /// 產創 23-3 未分配盈餘年度 concept：bundle 級，值由 OC 依卡上使用者選的年度供給。
+    @Test("industrialInnovationUndistributedEarningsYear 已登記且為 bundle 級")
+    func industrialInnovationUndistributedEarningsYearIsRegisteredBundleConcept() {
+        #expect(TemplateVariableConcept.industrialInnovationUndistributedEarningsYear.rawValue == "IndustrialInnovationUndistributedEarningsYear")
+        #expect(TemplateVariableConcept.industrialInnovationUndistributedEarningsYear.scope == .bundle)
+        #expect(TemplateVariableConcept.industrialInnovationUndistributedEarningsYear.placeholder() == "%IndustrialInnovationUndistributedEarningsYear%")
+    }
+
     /// 記帳結束服務時間 concept：bundle 級，與 accountingStart 成對（值由 OpportunityContext 依記帳卡 endDate 算出）。
     @Test("accountingEnd 已登記且為 bundle 級")
     func accountingEndIsRegisteredBundleConcept() {

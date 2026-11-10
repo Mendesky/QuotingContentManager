@@ -12,6 +12,7 @@ public struct QuotingContentManager: Sendable {
         .taxComplianceAudit,
         .taxComplianceAuditAndUndistributedEarningsAudit,
         .provisionalIncomeTaxAudit,
+        .industrialInnovationUndistributedEarningsFiling,
         .cashierOperation,
         .payrollSupportOperation,
 //        .settlementReview,
